@@ -8,8 +8,7 @@ This is an alpha-version and still under development.
 ![](https://live.staticflickr.com/65535/52077372779_5dafd04018_o.gif)
 species 1
 
-![](https://live.staticflickr.com/65535/52076068947_cf3e339868_o.gif)
-species 2
+![](https://live.staticflickr.com/65535/52077644755_f2d475303e_o.gif)
 
 ### Field of view (FOV) and acuity
 ![](https://live.staticflickr.com/65535/52076088442_1bff87d231_o.png)
