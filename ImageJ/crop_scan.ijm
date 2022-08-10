@@ -1,5 +1,7 @@
 script_version = "0.9.13";
- 
+
+// data at \\blanke-nas-1\DATA\RAWDATA\Hexapoda\7_Holometabola\Hymenoptera
+
 requires("1.39l");
 if (isOpen("Log")) { 
      selectWindow("Log"); 
