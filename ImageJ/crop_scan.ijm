@@ -9,6 +9,10 @@ if (isOpen("Results")) {
      selectWindow("Results"); 
      run("Close"); 
 }
+if (isOpen("3D Viewer")) { 
+     selectWindow("3D Viewer"); 
+     run("Close"); 
+}
 while (nImages>0) { 
           selectImage(nImages); 
           close(); 
@@ -120,6 +124,17 @@ waitForUser("1) Check stack for first and last image number in z direction of ey
 	first_image_eye2 = Dialog.getNumber();
 	last_image_eye2 = Dialog.getNumber();
 
+
+// check if scaling is necessary for head-stack checkpoint
+Dialog.create("Scaling settings");
+	Dialog.addMessage("___________________________________");
+	Dialog.addNumber("Scale to [MB]: ", 120);
+	Dialog.addMessage("___________________________________");
+	Dialog.addMessage("PTR, Jan. 2022");
+	Dialog.addMessage("Bonn Univ., Bonn, Germany");
+	Dialog.show();
+	d_size = Dialog.getNumber()/1024;  //MB/1024=GB
+	
 run("Select None");
 run("8-bit");
 
@@ -137,16 +152,6 @@ ROI_path = parent_dir_path+dir_sep+specimen_name+"_"+ROI_name;
 File.makeDirectory(ROI_path);
 // sace full-sized head stack
 saveAs("Tiff", ROI_path+dir_sep+specimen_name+"_"+ROI_name+".tif");
-
-// check if scaling is necessary for head-stack checkpoint
-Dialog.create("Scaling settings");
-	Dialog.addMessage("___________________________________");
-	Dialog.addNumber("Scale to [MB]: ", 120);
-	Dialog.addMessage("___________________________________");
-	Dialog.addMessage("PTR, Jan. 2022");
-	Dialog.addMessage("Bonn Univ., Bonn, Germany");
-	Dialog.show();
-	d_size = Dialog.getNumber()/1024;  //MB/1024=GB
 
 // calculate if scaling is necessary later
 Stack.getDimensions(width_orig, height_orig, channels, slices, frames);
@@ -517,3 +522,8 @@ print(open_log_file, "scaling_head = " + d);
 print(open_log_file, "px_size_head = " + px_size_sc + " " + unit);
 File.close(open_log_file)
 print("************************************");
+
+while (nImages>0) { 
+          selectImage(nImages); 
+          close(); 
+}

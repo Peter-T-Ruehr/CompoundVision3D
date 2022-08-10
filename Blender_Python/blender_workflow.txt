@@ -1,0 +1,3 @@
+open xxx_eye1.stl in Meshlab
+open xxx_head/checkpoint and compare if eye1 is left
+write in https://docs.google.com/spreadsheets/d/1ZDXbGHqE-5V6T4kmpA-ED-2hgKv8ZagdACzV-PL71-8/edit#gid=0 $ eye: left/right
