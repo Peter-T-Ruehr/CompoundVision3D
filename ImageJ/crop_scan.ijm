@@ -1,4 +1,4 @@
-script_version = "0.9.13";
+script_version = "0.9.14";
 
 // data at \\blanke-nas-1\DATA\RAWDATA\Hexapoda\7_Holometabola\Hymenoptera
 
@@ -166,10 +166,10 @@ d = perc_d/100;
 if(perc_d<100){
 	print("Scaling head stack to "+perc_d+"% to reach stack size of ~"+d_size+" GB...");
 	run("Scale...", "x="+d+" y="+d+" z="+d+" interpolation=Bicubic average process create");
-	getPixelSize(unit_, px_size_sc, ph, pd);
 	print("New px size = "+px_size+" um.");
 	saveAs("Tiff", ROI_path+dir_sep+specimen_name+"_"+ROI_name+"_sc"+perc_d+".tif");
 }
+getPixelSize(unit_, px_size_sc, ph, pd);
 
 // save head as Checkpoint
 checkpoint_file = File.open(ROI_path+dir_sep+specimen_name+"_"+ROI_name+".ckpt");
@@ -379,7 +379,7 @@ run("3D Viewer");
 call("ij3d.ImageJ3DViewer.setCoordinateSystem", "false");
 call("ij3d.ImageJ3DViewer.add", title, "White", title, threshold_eye1, "true", "true", "true", "1", "2");
 
-waitForUser("Save STL...", "Save STL file manually. Click okay AFTER saving is finished.");
+waitForUser("Save STL...", "Save ASCII STL file manually. Click okay AFTER saving is finished.");
 call("ij3d.ImageJ3DViewer.close");
 
 // crop eye 2
@@ -499,7 +499,7 @@ run("3D Viewer");
 call("ij3d.ImageJ3DViewer.setCoordinateSystem", "false");
 call("ij3d.ImageJ3DViewer.add", title, "White", title, threshold_eye2, "true", "true", "true", "1", "2");
 
-waitForUser("Save STL...", "Save STL file manually. Click okay AFTER saving is finished.");
+waitForUser("Save STL...", "Save ASCII STL file manually. Click okay AFTER saving is finished.");
 call("ij3d.ImageJ3DViewer.close");
 
 print("************************************");
