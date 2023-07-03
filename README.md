@@ -7,7 +7,7 @@ This repository contains
 * `ImageJ macro language`
     * crop out the left and the right eye from a CT image stacks of various sources
     * crop out head capsule and automatically scale down for landmarking if necessary
-    * automatically generate surface STLs of compund eyes
+    * automatically generate surface STLs of compound eyes
 * `Python`
   * extract compound eye surface from STLs in Blender
 * `R`
