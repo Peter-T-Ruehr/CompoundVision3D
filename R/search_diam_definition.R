@@ -32,22 +32,48 @@ search_diam_interactive <- function(df){
     selection_sphere_size = 0.05 * (max(df$x) - min(df$x))
     
     continue <- readline(prompt="Finished rotation? (\"y\" = yes; \"n\" = no\")")
-    if(continue == "Y" | continue == "y") run = T
+    if(continue == "Y" | continue == "y") run = TRUE
     
     # start 3D selection
-    print(paste0("Select two neighboring facet peaks. Then press the 'Esc' key."))
+    print(paste0("Select the fist of two neighboring facet peaks. Then press the 'Esc' key."))
     
-    curr.selection <- selectpoints3d(ids["data"], value = FALSE,
-                                     multiple = function(ids) {
-                                       spheres3d(df[ids[, "index"], , drop = FALSE], color = "red",
-                                                 alpha = .9, radius = selection_sphere_size)
-                                       TRUE
-                                     })
+    # does not work anymore since dplyr update: rgl error. not updated 2023-07-03
+    # curr.selection <- selectpoints3d(ids["data"], value = FALSE,
+    #                                  multiple = function(ids) {
+    #                                    spheres3d(df[ids[, "index"], , drop = FALSE], color = "red",
+    #                                              alpha = .9, radius = selection_sphere_size)
+    #                                    TRUE
+    #                                  })
+    
+    curr.selection1 <- selectpoints3d(ids["data"], value = FALSE,
+                                      multiple = function(ids) {
+                                        spheres3d(df[ids[, "index"], , drop = FALSE], color = "red",
+                                                  alpha = .9, radius = selection_sphere_size)
+                                        TRUE
+                                      })
+    
+    # continue with second ommatidium
+    print(paste0("Select the seceond of two neighboring facet peaks. Then press the 'Esc' key."))
+    curr.selection2 <- selectpoints3d(ids["data"], value = FALSE,
+                                      multiple = function(ids) {
+                                        spheres3d(df[ids[, "index"], , drop = FALSE], color = "red",
+                                                  alpha = .9, radius = selection_sphere_size)
+                                        TRUE
+                                      })
+    
     run = FALSE
   }
   
-  # extract selection coordinates
-  curr_selection_coords <- df[curr.selection[(nrow(curr.selection)-1):(nrow(curr.selection)), 2], ]
+  # extract selection coordinates - does not work following above rgl error of after dplyr update
+  # curr_selection_coords <- df[curr.selection[(nrow(curr.selection)-1):(nrow(curr.selection)), 2], ]
+  # get last index of selection1
+  curr_selection_coords1 <- df[curr.selection1[(nrow(curr.selection1)), 2], ]
+  
+  # get last index of selection1
+  curr_selection_coords2 <- df[curr.selection2[(nrow(curr.selection2)), 2], ]
+  
+  curr_selection_coords <- rbind(curr_selection_coords1,
+                                 curr_selection_coords2)
   
   # calculate distance between points ~= facet diameter
   dist_between_points <- as.numeric(dist(curr_selection_coords))
