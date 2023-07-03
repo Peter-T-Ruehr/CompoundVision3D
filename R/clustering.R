@@ -109,7 +109,16 @@ find_facet_peaks_rough <- function(df,
 #' # xxx: add example
 #' 
 find_facet_peaks_fine <- function(df,
-                                  cols_to_use){
+                                  cols_to_use,
+                                  h_min = NULL,
+                                  h_max = NULL){
+  
+  # # testing
+  # df = rough_peaks
+  # cols_to_use = (ncol(rough_peaks)-2):ncol(rough_peaks)
+  # h_min = NULL
+  # h_max = NULL
+  
   # dplyr NULLs
   ID <- x <- y <- z <- cluster <- Var1 <- Var2 <- '.' <- NULL
   
@@ -118,13 +127,17 @@ find_facet_peaks_fine <- function(df,
   d <- dist(df[,cols_to_use], method = "euclidean")
   # Hierarchical clustering using Complete Linkage
   hc1 <- hclust(d, method = "complete" )
-  # Plot the obtained dendrogram
-  plot(hc1, cex = 0.6, hang = -1)
   
-  message("select minimum and maximum cut-off points on y axis for first trial.")
-  h.cutoff.df <- locator(type = "n", n=2)
-  h_min = h.cutoff.df$y[1]
-  h_max = h.cutoff.df$y[2]
+  if(is.null(h_min)|is.null(h_max)){
+    # Plot the obtained dendrogram
+    plot(hc1, cex = 0.6, hang = -1)
+    
+    message("select minimum and maximum cut-off points on y axis for first trial.")
+    h.cutoff.df <- locator(type = "n", n=2)
+    h_min = h.cutoff.df$y[1]
+    h_max = h.cutoff.df$y[2]
+  }
+  print(paste0("Min.: ", h_min, "; max.: ", h_max))
   n_steps = 200
   names = c("h", "ommatidia.no")
   ommatidia.no.df = as_tibble(setNames(data.frame(matrix(nrow = 0, 
