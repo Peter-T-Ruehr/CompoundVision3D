@@ -29,8 +29,8 @@ STL_2_tibble <- function(file_name){
   ID <- x <- y <- z <- value <- value.1 <- value.2 <- row_number <- norm.x <- 
     norm.y <- norm.z <- NULL
   
-  # xxx:
-  file_name <- "X:/Pub/2021/_Ruehr_AntVision/data/2_STLs/1_new/AV00001_Camponotus_hyatti_eye1_surface.stl"
+  # # testing:
+  # file_name <- "X:/Pub/2021/_Ruehr_AntVision/data/2_STLs/1_new/AV00001_Camponotus_hyatti_eye1_surface.stl"
   
   # load STL file as lines
   print(paste0("Importing ", file_name, "..." ))
