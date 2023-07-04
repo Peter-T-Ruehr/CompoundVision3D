@@ -1,6 +1,3 @@
-// Recursively lists the files in a user-specified directory.
-// Open a file on the list by double clicking on it.
-
 dir = getDirectory("Choose a Directory ");
 count = 1;
 listFiles(dir); 
@@ -25,3 +22,9 @@ function listFiles(dir) {
 		}
  }
 }
+
+// when everything is finished, remove all tif and checkpoint files:
+// open PowerShell
+// run cd X:\Pub\2021\_Ruehr_AntVision\data\tmp
+// run del /S *.tif
+// run del /S *.ckpt
