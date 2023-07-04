@@ -46,8 +46,7 @@ find_facet_peaks_rough <- function(df,
   
   registerDoParallel(cores)
   for(k in 1:iterations){
-    print("iteration #:")
-    print(k)
+    print(paste("iteration #:", k))
     # define number of iterations of preliminary agglomerative clustering
     local.clust.verts.means <- foreach(i = 1:nrow(df),
                                        .combine=rbind, .packages=c('dplyr')) %dopar% { # .packages=c('dplyr', 'geometry')
@@ -125,21 +124,44 @@ find_facet_peaks_fine <- function(df,
   # Agglomerative clustering
   # Dissimilarity matrix
   d <- dist(df[,cols_to_use], method = "euclidean")
+  
   # Hierarchical clustering using Complete Linkage
+  print("Calculating and plotting dendrogram of hierarchichal clustering..")
   hc1 <- hclust(d, method = "complete" )
   
   if(is.null(h_min)|is.null(h_max)){
     # Plot the obtained dendrogram
-    plot(hc1, cex = 0.6, hang = -1)
-    
     message("select minimum and maximum cut-off points on y axis for first trial.")
+    message("Only select two points, the script will continue automatically.")
+    plot(hc1, cex = 0.6, hang = -1, 
+         labels = FALSE, xlab = "")
     h.cutoff.df <- locator(type = "n", n=2)
     h_min = h.cutoff.df$y[1]
     h_max = h.cutoff.df$y[2]
+    
+    message("Adding cutoff values to table.")
+    AntVisTab$cutoffs_rough[AntVisTab$AV == curr_AV & AntVisTab$eye == curr_eye] <- paste0(round(h_min,3), ";", round(h_max, 3))
+    
+    # save AntVisTab with search diameters
+    write.xlsx(x = as.data.frame(AntVisTab), file = "./data/AntVisTab_with_cutoffs.xlsx", 
+               showNA = FALSE, row.names = FALSE)
+    
+  } else {
+    
+    message("Adding cut-off values to table.")
+    AntVisTab$cutoffs_rough[AntVisTab$AV == curr_AV & AntVisTab$eye == curr_eye] <- paste0(round(h_min,3), ";", round(h_max, 3))
+    
+    # save AntVisTab with search diameters
+    write.xlsx(x = as.data.frame(AntVisTab), file = "./data/AntVisTab_with_cutoffs.xlsx", 
+               showNA = FALSE, row.names = FALSE)
   }
-  print(paste0("Min.: ", h_min, "; max.: ", h_max))
+  
+  
+  print(paste0("Min.: ", round(h_min,3), "; max.: ", round(h_max, 3)))
   n_steps = 200
   names = c("h", "ommatidia.no")
+  
+  message("Finding clusters for ", n_steps, " points between cut-off values.")
   ommatidia.no.df = as_tibble(setNames(data.frame(matrix(nrow = 0, 
                                                          ncol = length(names))), 
                                        names))
@@ -163,6 +185,14 @@ find_facet_peaks_fine <- function(df,
   message("select cut-off point on y axis.")
   h.cutoff <- locator(type = "n", n=1)
   
+  
+  message("Adding final cut-off value to table.")
+  AntVisTab$cutoff_final[AntVisTab$AV == curr_AV & AntVisTab$eye == curr_eye] <- round(h.cutoff$x, 3)
+  
+  # save AntVisTab with search diameters
+  write.xlsx(x = as.data.frame(AntVisTab), file = "./data/AntVisTab_with_cutoffs.xlsx", 
+             showNA = FALSE, row.names = FALSE)
+  
   # save a vector (clusters.fin) that stores to which cluster each coordinate belongs
   clusters.fin <- cutree(hc1, h = h.cutoff$x[length(h.cutoff$x)])
   # print(paste0("Found ", length(unique(clusters.fin)), " potential facets."))
@@ -178,26 +208,64 @@ find_facet_peaks_fine <- function(df,
               z = median(z)) %>% 
     select(-cluster)
   
-  # # plot the cluster centers
-  # plot3d(tri_centers_normals_use[,2:4],
-  #        col = tri_centers_normals_use$local_height_cols, aspect = "iso")
-  # points3d(df.fin, col="red", size=10, alpha = 0.9)
-  # text3d(df.fin, texts = 1:nrow(df.fin), pos = 3, col = "blue", cex=0.5)
-  
   # create distance matrix of all clusters to each other
   dist.clusters <- dist(df.fin)
   
   # melt the distance matrix into a three-column tibble
-  dist.clusters.tbl <- melt(as.matrix((dist.clusters))) %>% as_tibble() %>% filter(Var1 < Var2)
+  dist.clusters.tbl <- reshape2::melt(as.matrix((dist.clusters))) %>% as_tibble() %>% filter(Var1 < Var2)
   
   # plot a histogram of all distances
-  hist(dist.clusters.tbl$value)
+  hist.plot <- hist(dist.clusters.tbl$value)
+  break_size <- hist.plot$breaks[2]
+  hist_x <- hist.plot$breaks[which(hist.plot$counts == max(hist.plot$counts))] + break_size/2
+  lines(x = rep(hist_x, 2), y=c(0, (max(hist.plot$counts) + 0.05 * max(hist.plot$counts))),
+        col = "blue", lty = 2)
+  
+  
   clust.dist.med <- median(dist.clusters.tbl$value)
   
   
   # filter the clusters that remain
   df.fin.clean <- df.fin %>% 
     mutate(ID = 1:nrow(.))
+  
+  
+  print(paste0("Saving plots as ", file.path(csv_folder_fine_clusters, paste0(gsub("local_heights_rough_clusters\\.csv$", "", basename(curr_file_name)), "fine_clusters_plot", ".pdf"))))
+  
+  # PDF plots
+  pdf(file.path(csv_folder_fine_clusters, paste0(gsub("local_heights_rough_clusters\\.csv$", "", basename(curr_file_name)), "fine_clusters_plot", ".pdf")), # , today()
+      onefile = TRUE, paper = "a4", height = 14)
+  
+  # par(mfrow=c(3,1))
+  # Set plot layout
+  layout(mat = matrix(c(1, 2, 3, 4), 
+                      nrow = 4, 
+                      ncol = 1),
+         heights = c(2,1,1,1))# ,    # Heights of the two rows
+  # widths = c(2, 1))     # Widths of the two columns
+  # layout.show(4)
+  # tree
+  plot(hc1, cex = 0.6, hang = -1)
+  abline(a=h_min, b=0, col="blue", lty=2)
+  abline(a=h_max, b=0, col="blue", lty=2)
+  
+  # curve and differences
+  plot(ommatidia.no.df$h, ommatidia.no.df$ommatidia.no) # , ylim = c(0,max(ommatidia.no.df$ommatidia.no))
+  lines(x=rep(h.cutoff$x, 2), y = c(min(ommatidia.no.df$ommatidia.no), max(ommatidia.no.df$ommatidia.no)),
+        col = "blue", lty=2)
+  plot(ommatidia.no.df$h, ommatidia.no.df$ommatidia.no.diff, type="l")
+  lines(x=rep(h.cutoff$x, 2), y = c(min(ommatidia.no.df$ommatidia.no.diff), max(ommatidia.no.df$ommatidia.no.diff)),
+        col = "blue", lty=2)
+  abline(a=0, b=0, col="red", lty=2)
+  
+  # Histogram
+  hist.plot <- hist(dist.clusters.tbl$value)
+  break_size <- hist.plot$breaks[2]
+  hist_x <- hist.plot$breaks[which(hist.plot$counts == max(hist.plot$counts))] + break_size/2
+  lines(x = rep(hist_x, 2), y=c(0, (max(hist.plot$counts) + 0.05 * max(hist.plot$counts))),
+        col = "blue", lty = 2)
+  # par(mfrow=c(1,1))
+  dev.off()
   
   
   # plot the cluster centers
@@ -212,7 +280,7 @@ find_facet_peaks_fine <- function(df,
          texts = df.fin.clean$ID, 
          pos = 3, col = "blue", cex=1)
   
-  print(paste0("Found ", nrow(df.fin.clean), " facet center candiates. 
-               Check 3D plot device."))
+  print(paste0("Found ", nrow(df.fin.clean), " facet center candiates. Check 3D plot device."))
+  
   return(df.fin.clean)
 }
