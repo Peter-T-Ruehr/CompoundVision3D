@@ -1,6 +1,6 @@
-script_version = "0.9.14";
+script_version = "0.9.17";
 
-// data at \\blanke-nas-1\DATA\RAWDATA\Hexapoda\7_Holometabola\Hymenoptera
+// data at X:\Pub\2019\Ruehr_compound_vision\data
 
 requires("1.39l");
 if (isOpen("Log")) { 
@@ -90,13 +90,25 @@ run("Select None");
 run("Min...", "value=min stack");
 run("Max...", "value=max stack");
 
-// define rectangle for crop
+// define rectangle for head crop
 setTool("rectangle");
 waitForUser("Define rectangle for head ROI.");
-getSelectionCoordinates(x_crop, y_crop);
+getSelectionCoordinates(x_head, y_head);
+
+waitForUser("1) Check stack for first and last image number in z direction of head ROI\n2) AFTERWARDS, click 'Ok'."); 
+	curr_slice = getSliceNumber();
+	Dialog.create("Welcome");
+	Dialog.addMessage("Please enter number of first and last image.");
+	Dialog.addMessage("___________________________________");
+	Dialog.addNumber("First image:", 1);
+	Dialog.addNumber("Last image:", curr_slice);
+	Dialog.show();
+	
+	first_image_head = Dialog.getNumber();
+	last_image_head = Dialog.getNumber();
 run("Select None");
 
-// define rectangle for crop
+// define rectangle for eye1 crop
 setTool("rectangle");
 waitForUser("Define rectangle for eye1 ROI.");
 getSelectionCoordinates(x_eye1, y_eye1);
@@ -115,7 +127,7 @@ waitForUser("1) Check stack for first and last image number in z direction of ey
 
 run("Select None");
 
-// define rectangle for crop
+// define rectangle for eye2 crop
 setTool("rectangle");
 waitForUser("Define rectangle for eye2 ROI.");
 getSelectionCoordinates(x_eye2, y_eye2);
@@ -142,14 +154,25 @@ Dialog.create("Scaling settings");
 	Dialog.addMessage("Bonn Univ., Bonn, Germany");
 	Dialog.show();
 	d_size = Dialog.getNumber()/1024;  //MB/1024=GB
-	
+
+//Create dialog to check if pixel size is correct or user define it
+Dialog.create("Check pixel size");
+	Dialog.addNumber("Correct pixel size?:", px_size, 9, 15, unit)
+	Dialog.show();
+	px_size = Dialog.getNumber();
+	unit = Dialog.getString();
+
+// set pixil size
+run("Properties...", "pixel_width="+px_size+" pixel_height="+px_size+" voxel_depth="+px_size);
+
+// deselct everything and convert stack to 8bit
 run("Select None");
 run("8-bit");
 
 // crop head
 selectWindow("original");
-run("Duplicate...", "duplicate");
-makeRectangle(x_crop[0], y_crop[0], x_crop[2]-x_crop[0], y_crop[2]-y_crop[0]);
+run("Duplicate...", "duplicate range=first_image_head-last_image_head");
+makeRectangle(x_head[0], y_head[0], x_head[2]-x_head[0], y_head[2]-y_head[0]);
 run("Crop");
 title_head = getTitle();
 
@@ -160,8 +183,6 @@ ROI_path = parent_dir_path+dir_sep+specimen_name+"_"+ROI_name;
 File.makeDirectory(ROI_path);
 // sace full-sized head stack
 // saveAs("Tiff", ROI_path+dir_sep+specimen_name+"_"+ROI_name+".tif");
-nrrd_file = ROI_path+dir_sep+specimen_name+"_"+ROI_name+".nrrd";
-run("Nrrd ... ", "nrrd=[nrrd_file]");
 
 // calculate if scaling is necessary later
 Stack.getDimensions(width_orig, height_orig, channels, slices, frames);
@@ -176,15 +197,21 @@ if(perc_d<100){
 	run("Scale...", "x="+d+" y="+d+" z="+d+" interpolation=Bicubic average process create");
 	print("New px size = "+px_size+" um.");
 	// saveAs("Tiff", ROI_path+dir_sep+specimen_name+"_"+ROI_name+"_sc"+perc_d+".tif");
-	nrrd_file = ROI_path+dir_sep+specimen_name+"_"+ROI_name+"_sc"+perc_d+".nrrd");
+	nrrd_file = ROI_path+dir_sep+specimen_name+"_"+ROI_name+"_sc"+perc_d+".nrrd";
+	run("Nrrd ... ", "nrrd=[nrrd_file]");
+} else {
+	print("No scaling of head stack necessary.");
+	perc_d = 100;
+	nrrd_file = ROI_path+dir_sep+specimen_name+"_"+ROI_name+".nrrd";
 	run("Nrrd ... ", "nrrd=[nrrd_file]");
 }
+
 getPixelSize(unit_, px_size_sc, ph, pd);
 
 // crop eye 1
 selectWindow("original");
-run("Duplicate...", "duplicate");
-run("Make Substack...", " slices="+first_image_eye1+"-"+last_image_eye1);
+run("Duplicate...", "duplicate range=first_image_eye1-last_image_eye1");
+//run("Make Substack...", " slices="+first_image_eye1+"-"+last_image_eye1);
 makeRectangle(x_eye1[0], y_eye1[0], x_eye1[2]-x_eye1[0], y_eye1[2]-y_eye1[0]);
 run("Crop");
 title_eye1 = getTitle();
@@ -219,13 +246,13 @@ run("3D Viewer");
 call("ij3d.ImageJ3DViewer.setCoordinateSystem", "false");
 call("ij3d.ImageJ3DViewer.add", title, "White", title, threshold_eye1, "true", "true", "true", "1", "2");
 
-waitForUser("Save STL...", "Save STL file manually. Click okay AFTER saving is finished.");
+waitForUser("Save STL...", "Save binary STL file for eye1 manually. Click okay AFTER saving is finished.");
 call("ij3d.ImageJ3DViewer.close");
 
 // crop eye 2
 selectWindow("original");
-run("Duplicate...", "duplicate");
-run("Make Substack...", " slices="+first_image_eye2+"-"+last_image_eye2);
+run("Duplicate...", "duplicate range=first_image_eye2-last_image_eye2");
+// run("Make Substack...", " slices="+first_image_eye2+"-"+last_image_eye2);
 makeRectangle(x_eye2[0], y_eye2[0], x_eye2[2]-x_eye2[0], y_eye2[2]-y_eye2[0]);
 run("Crop");
 title_eye2 = getTitle();
@@ -260,7 +287,7 @@ run("3D Viewer");
 call("ij3d.ImageJ3DViewer.setCoordinateSystem", "false");
 call("ij3d.ImageJ3DViewer.add", title, "White", title, threshold_eye2, "true", "true", "true", "1", "2");
 
-waitForUser("Save STL...", "Save ASCII STL file manually. Click okay AFTER saving is finished.");
+waitForUser("Save STL...", "Save binary STL file for eye1 manually. Click okay AFTER saving is finished.");
 call("ij3d.ImageJ3DViewer.close");
 
 print("************************************");
@@ -272,7 +299,9 @@ print(open_log_file, "script_version = " + script_version);
 print(open_log_file, "px_size = " + px_size + " " + unit);
 print(open_log_file, "hist_min = " + min);
 print(open_log_file, "hist_max = " + max);
-print(open_log_file, "ROI_head = makeRectangle("+x_crop[0]+", "+y_crop[0]+", "+x_crop[1]-x_crop[0]+", "+y_crop[2]-y_crop[0]+");");
+print(open_log_file, "ROI_head = makeRectangle("+x_head[0]+", "+y_head[0]+", "+x_head[1]-x_head[0]+", "+y_head[2]-y_head[0]+");");
+print(open_log_file, "z_first_head = " + first_image_head);
+print(open_log_file, "z_last_head = " + last_image_head);
 print(open_log_file, "ROI_eye1 = makeRectangle("+x_eye1[0]+", "+y_eye1[0]+", "+x_eye1[1]-x_eye1[0]+", "+y_eye1[2]-y_eye1[0]+");");
 print(open_log_file, "z_first_eye1 = " + first_image_eye1);
 print(open_log_file, "z_last_eye1 = " + last_image_eye1);
@@ -290,3 +319,6 @@ while (nImages>0) {
           selectImage(nImages); 
           close(); 
 }
+
+print("All done!");
+print("************************************");
