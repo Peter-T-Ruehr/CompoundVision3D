@@ -126,7 +126,7 @@ find_facet_peaks_fine <- function(df,
   d <- dist(df[,cols_to_use], method = "euclidean")
   
   # Hierarchical clustering using Complete Linkage
-  print("Calculating and plotting dendrogram of hierarchichal clustering..")
+  message("Calculating and plotting dendrogram of hierarchichal clustering..")
   hc1 <- hclust(d, method = "complete" )
   
   if(is.null(h_min)|is.null(h_max)){
@@ -139,21 +139,21 @@ find_facet_peaks_fine <- function(df,
     h_min = h.cutoff.df$y[1]
     h_max = h.cutoff.df$y[2]
     
-    message("Adding cutoff values to table.")
-    AntVisTab$cutoffs_rough[AntVisTab$AV == curr_AV & AntVisTab$eye == curr_eye] <- paste0(round(h_min,3), ";", round(h_max, 3))
+    message(paste0(round(h_min,3), ";", round(h_max, 3),"."))
+    # AntVisTab$cutoffs_rough[AntVisTab$AV == curr_AV & AntVisTab$eye == curr_eye] <- paste0(round(h_min,3), ";", round(h_max, 3))
     
-    # save AntVisTab with search diameters
-    write.xlsx(x = as.data.frame(AntVisTab), file = "./data/AntVisTab_with_cutoffs.xlsx", 
-               showNA = FALSE, row.names = FALSE)
+    # # save AntVisTab with search diameters
+    # write.xlsx(x = as.data.frame(AntVisTab), file = "./data/AntVisTab_with_cutoffs.xlsx", 
+    #            showNA = FALSE, row.names = FALSE)
     
   } else {
-    
-    message("Adding cut-off values to table.")
-    AntVisTab$cutoffs_rough[AntVisTab$AV == curr_AV & AntVisTab$eye == curr_eye] <- paste0(round(h_min,3), ";", round(h_max, 3))
-    
-    # save AntVisTab with search diameters
-    write.xlsx(x = as.data.frame(AntVisTab), file = "./data/AntVisTab_with_cutoffs.xlsx", 
-               showNA = FALSE, row.names = FALSE)
+    message(paste0(round(h_min,3), ";", round(h_max, 3),"."))
+    # message("Adding cut-off values to table.")
+    # AntVisTab$cutoffs_rough[AntVisTab$AV == curr_AV & AntVisTab$eye == curr_eye] <- paste0(round(h_min,3), ";", round(h_max, 3))
+    # 
+    # # save AntVisTab with search diameters
+    # write.xlsx(x = as.data.frame(AntVisTab), file = "./data/AntVisTab_with_cutoffs.xlsx", 
+    #            showNA = FALSE, row.names = FALSE)
   }
   
   
@@ -186,12 +186,12 @@ find_facet_peaks_fine <- function(df,
   h.cutoff <- locator(type = "n", n=1)
   
   
-  message("Adding final cut-off value to table.")
-  AntVisTab$cutoff_final[AntVisTab$AV == curr_AV & AntVisTab$eye == curr_eye] <- round(h.cutoff$x, 3)
+  # message("Adding final cut-off value to table.")
+  # AntVisTab$cutoff_final[AntVisTab$AV == curr_AV & AntVisTab$eye == curr_eye] <- round(h.cutoff$x, 3)
   
-  # save AntVisTab with search diameters
-  write.xlsx(x = as.data.frame(AntVisTab), file = "./data/AntVisTab_with_cutoffs.xlsx", 
-             showNA = FALSE, row.names = FALSE)
+  # # save AntVisTab with search diameters
+  # write.xlsx(x = as.data.frame(AntVisTab), file = "./data/AntVisTab_with_cutoffs.xlsx", 
+  #            showNA = FALSE, row.names = FALSE)
   
   # save a vector (clusters.fin) that stores to which cluster each coordinate belongs
   clusters.fin <- cutree(hc1, h = h.cutoff$x[length(h.cutoff$x)])
@@ -267,20 +267,10 @@ find_facet_peaks_fine <- function(df,
   # par(mfrow=c(1,1))
   dev.off()
   
-  
-  # plot the cluster centers
-  plot3d(df %>% 
-           select(x, y, z),
-         col = df$local_height_cols, aspect = "iso")
-  points3d(df.fin.clean %>% 
-             select(x, y, z), 
-           col="red", size=10, alpha = 0.9)
-  text3d(df.fin.clean %>% 
-           select(x, y, z), 
-         texts = df.fin.clean$ID, 
-         pos = 3, col = "blue", cex=1)
-  
   print(paste0("Found ", nrow(df.fin.clean), " facet center candiates. Check 3D plot device."))
   
-  return(df.fin.clean)
+  return(df.fin.clean %>% 
+           mutate(cutoff_min = round(h_min,3),
+                 cutoff_max = round(round(h_max, 3),3),
+                 cutoff_fin = round(h.cutoff$x, 3)))
 }
