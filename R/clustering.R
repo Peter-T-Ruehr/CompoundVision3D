@@ -25,6 +25,9 @@ find_facet_peaks_rough <- function(df,
                                    clust_melt_rad,
                                    iterations = 1,
                                    cores = 1){
+  # load multi-core package
+  require(doParallel)
+  
   # dplyr NULLs
   ID <- x <- y <- z <- i <- local_height <- NULL
   
@@ -110,7 +113,8 @@ find_facet_peaks_rough <- function(df,
 find_facet_peaks_fine <- function(df,
                                   cols_to_use,
                                   h_min = NULL,
-                                  h_max = NULL){
+                                  h_max = NULL,
+                                  n_steps = 100){
   
   # # testing
   # df = rough_peaks
@@ -123,13 +127,14 @@ find_facet_peaks_fine <- function(df,
   
   # Agglomerative clustering
   # Dissimilarity matrix
+  message("Calculating distance matrix...")
   d <- dist(df[,cols_to_use], method = "euclidean")
-  
-  # Hierarchical clustering using Complete Linkage
-  message("Calculating and plotting dendrogram of hierarchichal clustering..")
   hc1 <- hclust(d, method = "complete" )
   
   if(is.null(h_min)|is.null(h_max)){
+    # Hierarchical clustering using Complete Linkage
+    message("Calculating and plotting dendrogram of hierarchichal clustering...")
+    
     # Plot the obtained dendrogram
     message("select minimum and maximum cut-off points on y axis for first trial.")
     message("Only select two points, the script will continue automatically.")
@@ -139,7 +144,7 @@ find_facet_peaks_fine <- function(df,
     h_min = h.cutoff.df$y[1]
     h_max = h.cutoff.df$y[2]
     
-    message(paste0(round(h_min,3), ";", round(h_max, 3),"."))
+    message(paste0(round(h_min,3), "; ", round(h_max, 3),"."))
     # AntVisTab$cutoffs_rough[AntVisTab$AV == curr_AV & AntVisTab$eye == curr_eye] <- paste0(round(h_min,3), ";", round(h_max, 3))
     
     # # save AntVisTab with search diameters
@@ -147,7 +152,7 @@ find_facet_peaks_fine <- function(df,
     #            showNA = FALSE, row.names = FALSE)
     
   } else {
-    message(paste0(round(h_min,3), ";", round(h_max, 3),"."))
+    message(paste0("Cut-offs defined as: ", round(h_min,3), "; ", round(h_max, 3),"."))
     # message("Adding cut-off values to table.")
     # AntVisTab$cutoffs_rough[AntVisTab$AV == curr_AV & AntVisTab$eye == curr_eye] <- paste0(round(h_min,3), ";", round(h_max, 3))
     # 
@@ -158,7 +163,7 @@ find_facet_peaks_fine <- function(df,
   
   
   print(paste0("Min.: ", round(h_min,3), "; max.: ", round(h_max, 3)))
-  n_steps = 200
+  # n_steps = 200
   names = c("h", "ommatidia.no")
   
   message("Finding clusters for ", n_steps, " points between cut-off values.")
@@ -184,14 +189,6 @@ find_facet_peaks_fine <- function(df,
   
   message("select cut-off point on y axis.")
   h.cutoff <- locator(type = "n", n=1)
-  
-  
-  # message("Adding final cut-off value to table.")
-  # AntVisTab$cutoff_final[AntVisTab$AV == curr_AV & AntVisTab$eye == curr_eye] <- round(h.cutoff$x, 3)
-  
-  # # save AntVisTab with search diameters
-  # write.xlsx(x = as.data.frame(AntVisTab), file = "./data/AntVisTab_with_cutoffs.xlsx", 
-  #            showNA = FALSE, row.names = FALSE)
   
   # save a vector (clusters.fin) that stores to which cluster each coordinate belongs
   clusters.fin <- cutree(hc1, h = h.cutoff$x[length(h.cutoff$x)])
