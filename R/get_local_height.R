@@ -15,14 +15,18 @@
 #'
 get_local_height <- function(df,
                              search_diam,
-                             cores = 1){
+                             cores = 1,
+                             log_scale = FALSE){
   
+  # load package for multi-core
+  require(doParallel)
   # # testing
   # tri_centers_normals <- readr::read_csv("X:/Pub/2021/_Ruehr_AntVision/data/3_triangle_centers_and_normals//AV00001_Camponotus_hyatti_eye1_surface.csv",
   #                                        show_col_types = FALSE)
   # df = tri_centers_normals[1:100, ]
   # search_diam = 55
   # cores = 12
+  # log_scale = TRUE
   # #/ testing
   
   # dplyr NULLs
@@ -79,7 +83,10 @@ get_local_height <- function(df,
                              curr_local_height <- dot(vector_point_facet_center,curr.facets.av.normal.normailzed, 
                                                       d=TRUE)
                              
-                             
+                             # log scale local height
+                             if(log_scale == TRUE){
+                               curr_local_height  <- 10^curr_local_height
+                             }
                              # plot3d(curr.facets.df[2:4], aspect = "iso")
                              # par3d("windowRect"= c(2300,200,3400,1000))
                              # lines3d(x=c(curr.facets.center[1], curr.facets.center[1]+curr.facets.av.normal.normailzed[1]),
@@ -104,7 +111,7 @@ get_local_height <- function(df,
     arrange(ID)
   
   end_time <- Sys.time()
-  end_time - start_time
+  print(end_time - start_time)
   
   print("done!")
   
