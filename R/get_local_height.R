@@ -38,11 +38,21 @@ get_local_height <- function(df,
     v/sqrt(sum(v^2))
   }
   
+  # define function to normalize data (from forceR)
+  rescale_to_range <- function(data, from, to) {
+    data <- data - min(data)
+    data <- data / max(data)
+    data <- data * (to - from)
+    data + from
+    return(data)
+  }
+  
   # calculate distance of all vertices to local plane within search_diam
   start_time <- Sys.time()
   registerDoParallel(cores)
   
   print("Starting analyses on cluster...")
+  print("Calculatinjg local heigths...")
   local_heights <- foreach(i = 1:nrow(df),
                            .combine=rbind, .packages=c('dplyr', 'geometry')) %dopar% {
                              
@@ -83,10 +93,6 @@ get_local_height <- function(df,
                              curr_local_height <- dot(vector_point_facet_center,curr.facets.av.normal.normailzed, 
                                                       d=TRUE)
                              
-                             # log scale local height
-                             if(log_scale == TRUE){
-                               curr_local_height  <- 10^curr_local_height
-                             }
                              # plot3d(curr.facets.df[2:4], aspect = "iso")
                              # par3d("windowRect"= c(2300,200,3400,1000))
                              # lines3d(x=c(curr.facets.center[1], curr.facets.center[1]+curr.facets.av.normal.normailzed[1]),
@@ -98,22 +104,59 @@ get_local_height <- function(df,
                              tmp <- curr_local_height
                            }
   
-  stopImplicitCluster()
-  print("Cluster analysis finished.")
-  
   # add distances to local planes to df tibble
   df$local_height <- as.numeric(local_heights)
   
+  # normalize local_height values within search radius
+  print("Normalizing local heights...")
+  local_heights_norm <- foreach(i = 1:nrow(df), # nrow(df)
+                           .combine=rbind, .packages=c('dplyr')) %dopar% {
+                             
+                             curr.facet.x.y.z <- df %>%
+                               dplyr::filter(ID == i) %>%
+                               select(x, y, z) %>%
+                               as.numeric()
+                             
+                             search_diam_normalize <- search_diam/2
+                             
+                             curr.facets.df <- df %>%
+                               dplyr::filter(x  >= curr.facet.x.y.z[1] - search_diam_normalize &
+                                               y  >= curr.facet.x.y.z[2] - search_diam_normalize &
+                                               z  >= curr.facet.x.y.z[3] - search_diam_normalize &
+                                               x  <= curr.facet.x.y.z[1] + search_diam_normalize &
+                                               y  <= curr.facet.x.y.z[2] + search_diam_normalize &
+                                               z  <= curr.facet.x.y.z[3] + search_diam_normalize )
+                             # print(nrow(curr.facets.df))
+                             
+                             curr_local_height_norm <- curr.facets.df %>% 
+                               mutate(local_height_norm = rescale_to_range(local_height, 0, 99)) %>% 
+                               filter(x == curr.facet.x.y.z[1], 
+                                      y == curr.facet.x.y.z[2], 
+                                      z == curr.facet.x.y.z[3])
+                             
+                             tmp <- curr_local_height_norm
+                           }
+  
+  stopImplicitCluster()
+  print("Cluster analysis finished.")
+  local_heights_norm
+  
   # add colors
-  df <- df %>% 
-    arrange(local_height) %>% 
-    mutate(local_height_cols = grey.colors(nrow(df), start=0.0)) %>% 
+  local_heights_norm <- local_heights_norm %>% 
+    arrange(local_height_norm) %>% 
+    mutate(local_height_col = grey.colors(nrow(local_heights_norm), start=0.0)) %>% 
     arrange(ID)
   
   end_time <- Sys.time()
   print(end_time - start_time)
   
+  # plot eye in 'SEM colors'
+  plot3d(local_heights_norm[, 2:4], 
+         col = local_heights_norm$local_height_col, 
+         aspect = "iso",
+         size=7)
+  
   print("done!")
   
-  return(df)
+  return(local_heights_norm)
 }
