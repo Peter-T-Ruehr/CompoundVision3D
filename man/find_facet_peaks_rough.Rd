@@ -7,8 +7,8 @@
 find_facet_peaks_rough(
   df,
   local_height_threshold = 2.5,
+  height_column,
   clust_melt_rad,
-  iterations = 1,
   cores = 1
 )
 }
@@ -24,10 +24,10 @@ Default: \code{2.5}.}
 \item{clust_melt_rad}{A numerical value of search radius for agglomerative
 clustering.}
 
+\item{cores}{A numerical value of how many cores to use. Default: \code{1}.}
+
 \item{iterations}{A numerical value of how many clustering iterations should
 be run. Default: \code{1}.}
-
-\item{cores}{A numerical value of how many cores to use. Default: \code{1}.}
 }
 \value{
 Tibble \code{df} with ideally one vertex per facet, located on the facet

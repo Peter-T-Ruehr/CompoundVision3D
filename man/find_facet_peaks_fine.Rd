@@ -4,7 +4,13 @@
 \alias{find_facet_peaks_fine}
 \title{Fine clustering towards Facet Peaks}
 \usage{
-find_facet_peaks_fine(df, cols_to_use, h_min = NULL, h_max = NULL)
+find_facet_peaks_fine(
+  df,
+  cols_to_use,
+  h_min = NULL,
+  h_max = NULL,
+  n_steps = 100
+)
 }
 \arguments{
 \item{df}{A tibble containing triangle center coordinates of vertices that
