@@ -22,18 +22,20 @@
 #' 
 find_facet_peaks_rough <- function(df,
                                    local_height_threshold = 2.5,
-                                   clust_melt_rad,
-                                   iterations = 1,
+                                   height_column,
+                                   clust_melt_rad, # iterations = 1,
                                    cores = 1){
   # load multi-core package
   require(doParallel)
+  
+  start_time <- Sys.time()
   
   # dplyr NULLs
   ID <- x <- y <- z <- i <- local_height <- NULL
   
   # remove all coordinates with a local height of less than 2.5x mean local height
   df <- df %>% 
-    filter(local_height >= mean(local_height)*2.5) 
+    filter(!!as.symbol(height_column) >= local_height_threshold) 
   
   
   # store filtered df for final results
@@ -87,6 +89,8 @@ find_facet_peaks_rough <- function(df,
   
   
   print("done!")
+  end_time <- Sys.time()
+  print(end_time - start_time)
   return(df_final)
 }
 
@@ -121,7 +125,7 @@ find_facet_peaks_fine <- function(df,
   # cols_to_use = (ncol(rough_peaks)-2):ncol(rough_peaks)
   # h_min = NULL
   # h_max = NULL
-  
+  start_time <- Sys.time()
   # dplyr NULLs
   ID <- x <- y <- z <- cluster <- Var1 <- Var2 <- '.' <- NULL
   
@@ -265,6 +269,8 @@ find_facet_peaks_fine <- function(df,
   dev.off()
   
   print(paste0("Found ", nrow(df.fin.clean), " facet center candiates. Check 3D plot device."))
+  end_time <- Sys.time()
+  print(end_time - start_time)
   
   return(df.fin.clean %>% 
            mutate(cutoff_min = round(h_min,3),
