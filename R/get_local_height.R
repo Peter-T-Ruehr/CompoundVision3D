@@ -6,6 +6,9 @@
 #' @param search_diam A numerical value defining the size of the search diameter 
 #' of defining the local plane.
 #' @param cores A numerical value of how many cores to use. Default: `1`.
+# @param normalize A numerical value to specifiy if local distances should be
+# normalized within a the given radius. If `NULL`, normalizing will be skipped.
+# Default: `NULL`. Recommended: `serach_daim/2`.
 #'
 #' @return Tibble `df` with additional column `local_height`.
 #'
@@ -16,7 +19,8 @@
 get_local_height <- function(df,
                              search_diam,
                              cores = 1,
-                             log_scale = FALSE){
+                             # normalize = NULL,
+                             log_scale = TRUE){
   
   # load package for multi-core
   require(doParallel)
@@ -38,21 +42,13 @@ get_local_height <- function(df,
     v/sqrt(sum(v^2))
   }
   
-  # define function to normalize data (from forceR)
-  rescale_to_range <- function(data, from, to) {
-    data <- data - min(data)
-    data <- data / max(data)
-    data <- data * (to - from)
-    data + from
-    return(data)
-  }
+  print("Starting analyses on cluster...")
   
   # calculate distance of all vertices to local plane within search_diam
   start_time <- Sys.time()
   registerDoParallel(cores)
   
-  print("Starting analyses on cluster...")
-  print("Calculatinjg local heigths...")
+  print(paste0("Calculating local heights for all ", nrow(df), " vertices..."))
   local_heights <- foreach(i = 1:nrow(df),
                            .combine=rbind, .packages=c('dplyr', 'geometry')) %dopar% {
                              
@@ -106,57 +102,157 @@ get_local_height <- function(df,
   
   # add distances to local planes to df tibble
   df$local_height <- as.numeric(local_heights)
+  # save(df, file = "./data/AV00003_df.Rdata")
   
-  # normalize local_height values within search radius
-  print("Normalizing local heights...")
-  local_heights_norm <- foreach(i = 1:nrow(df), # nrow(df)
-                           .combine=rbind, .packages=c('dplyr')) %dopar% {
-                             
-                             curr.facet.x.y.z <- df %>%
-                               dplyr::filter(ID == i) %>%
-                               select(x, y, z) %>%
-                               as.numeric()
-                             
-                             search_diam_normalize <- search_diam/2
-                             
-                             curr.facets.df <- df %>%
-                               dplyr::filter(x  >= curr.facet.x.y.z[1] - search_diam_normalize &
-                                               y  >= curr.facet.x.y.z[2] - search_diam_normalize &
-                                               z  >= curr.facet.x.y.z[3] - search_diam_normalize &
-                                               x  <= curr.facet.x.y.z[1] + search_diam_normalize &
-                                               y  <= curr.facet.x.y.z[2] + search_diam_normalize &
-                                               z  <= curr.facet.x.y.z[3] + search_diam_normalize )
-                             # print(nrow(curr.facets.df))
-                             
-                             curr_local_height_norm <- curr.facets.df %>% 
-                               mutate(local_height_norm = rescale_to_range(local_height, 0, 99)) %>% 
-                               filter(x == curr.facet.x.y.z[1], 
-                                      y == curr.facet.x.y.z[2], 
-                                      z == curr.facet.x.y.z[3])
-                             
-                             tmp <- curr_local_height_norm
-                           }
-  
+  # if(is.numeric(normalize)){
+  #   print(paste0("Normalizing local heights for all ", nrow(df), " vertices using a radius of ", normalize, "..."))
+  #   df <- foreach(i = 1:nrow(df), # nrow(df)
+  #                 .combine=rbind, .packages=c('dplyr', 'geometry')) %dopar% {
+  #                   
+  #                   curr.facet.x.y.z <- df %>%
+  #                     dplyr::filter(ID == i) %>%
+  #                     select(x, y, z) %>%
+  #                     as.numeric()
+  #                   
+  #                   curr.facets.df <- df %>%
+  #                     dplyr::filter(x  >= curr.facet.x.y.z[1] - normalize &
+  #                                     y  >= curr.facet.x.y.z[2] - normalize &
+  #                                     z  >= curr.facet.x.y.z[3] - normalize &
+  #                                     x  <= curr.facet.x.y.z[1] + normalize &
+  #                                     y  <= curr.facet.x.y.z[2] + normalize &
+  #                                     z  <= curr.facet.x.y.z[3] + normalize )
+  #                   
+  #                   curr.facets.df
+  #                   
+  #                   # function to normalize data (from forceR)
+  #                   rescale_to_range <- function(data, from, to) {
+  #                     data <- data - min(data)
+  #                     data <- data / max(data)
+  #                     data <- data * (to - from)
+  #                     data + from
+  #                     return(data)
+  #                   }
+  #                   
+  #                   curr_local_height_norm <- curr.facets.df %>% 
+  #                     mutate(local_height_norm = rescale_to_range(local_height, 1, 100)) %>% 
+  #                     filter(ID == i)
+  #                   
+  #                   tmp <- curr_local_height_norm
+  #                 }
+  # }
   stopImplicitCluster()
+  
+  # save(df, file = "./data/AV00003_df_NORM.Rdata")
+  # load(file = "./data/AV00003_df_NORM.Rdata")
+  
   print("Cluster analysis finished.")
-  local_heights_norm
-  
-  # add colors
-  local_heights_norm <- local_heights_norm %>% 
-    arrange(local_height_norm) %>% 
-    mutate(local_height_col = grey.colors(nrow(local_heights_norm), start=0.0)) %>% 
-    arrange(ID)
-  
   end_time <- Sys.time()
   print(end_time - start_time)
   
-  # plot eye in 'SEM colors'
-  plot3d(local_heights_norm[, 2:4], 
-         col = local_heights_norm$local_height_col, 
-         aspect = "iso",
-         size=7)
+  # print("Adding colours...")
+  # 
+  # if(log_scale == TRUE){}
+  # # logarithmic scale
+  # df <- df %>% 
+  #   mutate(local_height_log = 10^local_height)
+  # hist(df %>% 
+  #       pull(local_height_log))
+  # plot(df %>% 
+  #        pull(local_height),
+  #      pch=16, cex=.2)
+  # plot(df %>% 
+  #        pull(local_height_log),
+  #      pch=16, cex=.2)
+  # 
+  # # create color vector
+  # color_df <- tibble(local_height_log = 0:round(max(df$local_height_log)), 
+  #                    local_height_col_log = grey.colors(round(max(df$local_height_log))+1, start=0.0))
+  # 
+  # # df_cols <- df %>% 
+  # #   mutate(local_height_log = round(local_height_log)) %>% 
+  # #   left_join(color_df, by = "local_height_log")
+  # # 
+  # # # plot eye in 'SEM colors'
+  # # plot3d(df_cols %>% 
+  # #          select(x,y,z), 
+  # #        col = df_cols$local_height_col_log, 
+  # #        aspect = "iso",
+  # #        size=7)
+  # 
+  # 
+  # # create color vector
+  # color_df <- tibble(local_height = 0:100, 
+  #                    local_height_col = grey.colors(101, start=0.0))
+  # 
+  # # add colors
+  # df_cols <- df %>% 
+  #   mutate(local_height = round(rescale_to_range(local_height, 0, 100))) %>% 
+  #   left_join(color_df, by = "local_height")
+  # 
+  # 
+  # if(is.numeric(normalize)){
+  #   # add colors
+  #   df_cols <- df %>% 
+  #     mutate(local_height_norm = round(local_height_norm)) %>% 
+  #     left_join(color_df %>% 
+  #                 rename(local_height_norm = local_height,
+  #                        local_height_col_norm = local_height_col), by = "local_height_norm")
+  #   
+  #   # plot eye in 'SEM colors'
+  #   plot3d(df_cols %>% 
+  #            select(x,y,z), 
+  #          col = df_cols$local_height_col_norm, 
+  #          aspect = "iso",
+  #          size=7)
+  # } else{
+  #   
+  #   # plot eye in 'SEM colors'
+  #   plot3d(df_cols %>% 
+  #            select(x,y,z), 
+  #          col = df_cols$local_height_col, 
+  #          aspect = "iso",
+  #          size=7)
+  # }
+  
   
   print("done!")
   
-  return(local_heights_norm)
+  return(df)
+}
+
+#' Get colour values !HERE: Change description
+#'
+#' Calculate distance of vertices from local plane.
+#'
+#' @param df A tibble containing triangle center coordinates in columns `x, y, z`.
+#' @param search_diam A numerical value defining the size of the search diameter 
+#' of defining the local plane.
+#' @param cores A numerical value of how many cores to use. Default: `1`.
+# @param normalize A numerical value to specifiy if local distances should be
+# normalized within a the given radius. If `NULL`, normalizing will be skipped.
+# Default: `NULL`. Recommended: `serach_daim/2`.
+#'
+#' @return Tibble `df` with additional column `local_height`.
+#'
+#' @export
+#' @examples
+#' # xxx: add example
+#'
+get_height_colors <- function(heights){
+  
+  print("Adding colours for height values...")
+  # create color vector
+  # color_df <- tibble(local_height = 0:round(max(heights)), 
+  #                    local_height_col = grey.colors(round(max(heights))+1, start=0.0))
+  # create color vector
+  color_df <- tibble(local_height = 0:100, 
+                     local_height_col = grey.colors(101, start=0.0))
+  
+  # add colors
+  local_height_cols <- tibble(local_height = heights) %>% 
+    mutate(local_height = round(rescale_to_range(local_height, 0, 100))) %>% 
+    left_join(color_df, by = "local_height") %>% 
+    pull(local_height_col)
+  
+  return(local_height_cols)
 }
