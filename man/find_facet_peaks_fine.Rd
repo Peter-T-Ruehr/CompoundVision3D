@@ -9,7 +9,8 @@ find_facet_peaks_fine(
   cols_to_use,
   h_min = NULL,
   h_max = NULL,
-  n_steps = 100
+  n_steps = 100,
+  plot_file = NULL
 )
 }
 \arguments{
