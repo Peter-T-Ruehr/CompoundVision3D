@@ -238,12 +238,28 @@ get_local_height <- function(df,
 #' @examples
 #' # xxx: add example
 #'
-get_height_colors <- function(heights){
+get_height_colors <- function(heights,
+                              lower_qunatile = NULL,
+                              upper_qunatile = NULL){
   
-  print("Adding colours for height values...")
-  # create color vector
-  # color_df <- tibble(local_height = 0:round(max(heights)), 
-  #                    local_height_col = grey.colors(round(max(heights))+1, start=0.0))
+  # # testing
+  # lower_qunatile = NULL
+  # upper_qunatile = NULL
+  # heights = local_heights$local_height
+  # lower_qunatile = 0.9
+  # upper_qunatile = 0.9
+  
+  if(!is.null(upper_qunatile) & !is.null(lower_qunatile)){
+    # set upper and lower boundary for local heights
+    heights[heights >= 
+              quantile(heights, upper_qunatile)] <-
+      quantile(heights, upper_qunatile)
+    heights[heights <= 
+              -1*quantile(heights, lower_qunatile)] <-
+      -1*quantile(heights, lower_qunatile)
+  }
+  
+  message("Adding colours for height values...")
   # create color vector
   color_df <- tibble(local_height = 0:100, 
                      local_height_col = grey.colors(101, start=0.0))

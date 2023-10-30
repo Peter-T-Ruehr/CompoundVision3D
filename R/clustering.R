@@ -23,7 +23,8 @@
 find_facet_peaks_rough <- function(df,
                                    local_height_threshold = 2.5,
                                    height_column,
-                                   clust_melt_rad, # iterations = 1,
+                                   clust_melt_rad, 
+                                   # iterations = 1,
                                    cores = 1){
   # load multi-core package
   require(doParallel)
@@ -38,8 +39,8 @@ find_facet_peaks_rough <- function(df,
     filter(!!as.symbol(height_column) >= local_height_threshold) 
   
   
-  # store filtered df for final results
-  df_final <- df
+  # # store filtered df for final results
+  # df_final <- df
   
   # select relevant columns for analyses within this function
   df <- df %>% 
@@ -49,49 +50,52 @@ find_facet_peaks_rough <- function(df,
   # plot3d(df,
   #        aspect = "iso")
   
+  message("Getting agglomerative clusters...")
+  
   registerDoParallel(cores)
-  for(k in 1:iterations){
-    print(paste("iteration #:", k))
-    # define number of iterations of preliminary agglomerative clustering
-    local.clust.verts.means <- foreach(i = 1:nrow(df),
-                                       .combine=rbind, .packages=c('dplyr')) %dopar% { # .packages=c('dplyr', 'geometry')
-                                         
-                                         # get last columns of df because those are the ones containing the results of the last iteration
-                                         curr.df <- df[,(ncol(df)-2):ncol(df)]
-                                         colnames(curr.df) <- c("x", "y", "z")
-                                         
-                                         local.clust.verts <- curr.df %>%
-                                           filter(x>(df$x[i]-clust_melt_rad) & x<(df$x[i]+clust_melt_rad) &
-                                                    y>(df$y[i]-clust_melt_rad) & y<(df$y[i]+clust_melt_rad) &
-                                                    z>(df$z[i]-clust_melt_rad) & z<(df$z[i]+clust_melt_rad))
-                                         # plot(local.clust.verts[,2:3])
-                                         tmp <- local.clust.verts %>% # local.clust.verts.mean
-                                           summarize(median_x = median(x),
-                                                     median_y = median(y),
-                                                     median_z = median(z))
-                                         # points(local.clust.verts.mean[,2:3], pch=16,col="red")
-                                       }
-    
-    colnames(local.clust.verts.means) <- as.vector(outer(c("local_meds_x", "local_meds_y", "local_meds_z"), 
-                                                         k, 
-                                                         paste, sep="_"))
-    df_final <- as_tibble(cbind(df_final, local.clust.verts.means))
-    
-    # dist.matr <- dist(local.clust.verts.means)
-    # dist.matr.tbl <- melt(as.matrix((dist.matr))) %>% as_tibble() %>% filter(Var1 < Var2) %>% 
-    #   filter(value <= 50)
-    # png(paste0(stl.folder, "/hist_below_50_",k,".png"))
-    # hist(dist.matr.tbl$value)
-    # dev.off()
-    
-  }
+  # for(k in 1:iterations){
+  # print(paste("iteration #:", k))
+  # define number of iterations of preliminary agglomerative clustering
+  local.clust.verts.means <- foreach(i = 1:nrow(df),
+                                     .combine=rbind, .packages=c('dplyr')) %dopar% { # .packages=c('dplyr', 'geometry')
+                                       
+                                       # get last columns of df because those are the ones containing the results of the last iteration
+                                       curr.df <- df[,(ncol(df)-2):ncol(df)]
+                                       colnames(curr.df) <- c("x", "y", "z")
+                                       
+                                       local.clust.verts <- curr.df %>%
+                                         filter(x>(df$x[i]-clust_melt_rad) & x<(df$x[i]+clust_melt_rad) &
+                                                  y>(df$y[i]-clust_melt_rad) & y<(df$y[i]+clust_melt_rad) &
+                                                  z>(df$z[i]-clust_melt_rad) & z<(df$z[i]+clust_melt_rad))
+                                       # plot(local.clust.verts[,2:3])
+                                       tmp <- local.clust.verts %>% # local.clust.verts.mean
+                                         summarize(median_x = median(x),
+                                                   median_y = median(y),
+                                                   median_z = median(z))
+                                       # points(local.clust.verts.mean[,2:3], pch=16,col="red")
+                                     }
+  
+  # colnames(local.clust.verts.means) <- as.vector(outer(c("local_meds_x", "local_meds_y", "local_meds_z"), 
+  #                                                      k, 
+  #                                                      paste, sep="_"))
+  # df_final <- as_tibble(cbind(df_final, local.clust.verts.means))
+  
+  # dist.matr <- dist(local.clust.verts.means)
+  # dist.matr.tbl <- melt(as.matrix((dist.matr))) %>% as_tibble() %>% filter(Var1 < Var2) %>% 
+  #   filter(value <= 50)
+  # png(paste0(stl.folder, "/hist_below_50_",k,".png"))
+  # hist(dist.matr.tbl$value)
+  # dev.off()
+  
+  # }
   stopImplicitCluster()
   
   
   print("done!")
   end_time <- Sys.time()
   print(end_time - start_time)
-  return(df_final)
+  
+  return(local.clust.verts.means)
 }
 
 
@@ -118,7 +122,8 @@ find_facet_peaks_fine <- function(df,
                                   cols_to_use,
                                   h_min = NULL,
                                   h_max = NULL,
-                                  n_steps = 100){
+                                  n_steps = 100,
+                                  plot_file = NULL){
   
   # # testing
   # df = rough_peaks
@@ -201,12 +206,12 @@ find_facet_peaks_fine <- function(df,
   # add cluster-memberships (clusters.fin) to the cluster coordinates (df)
   # reduce clusters to their mean coordinates
   df.fin <- df %>% 
-    select(x,y,z) %>% 
+    select(all_of(cols_to_use)) %>% 
     mutate(cluster = clusters.fin) %>% 
     group_by(cluster) %>% 
-    summarize(x = median(x),
-              y = median(y),
-              z = median(z)) %>% 
+    summarize(x = median(!!as.symbol(colnames(df)[cols_to_use[1]])),
+              y = median(!!as.symbol(colnames(df)[cols_to_use[2]])),
+              z = median(!!as.symbol(colnames(df)[cols_to_use[3]]))) %>% 
     select(-cluster)
   
   # create distance matrix of all clusters to each other
@@ -230,43 +235,45 @@ find_facet_peaks_fine <- function(df,
   df.fin.clean <- df.fin %>% 
     mutate(ID = 1:nrow(.))
   
-  
-  print(paste0("Saving plots as ", file.path(csv_folder_fine_clusters, paste0(gsub("local_heights_rough_clusters\\.csv$", "", basename(curr_file_name)), "fine_clusters_plot", ".pdf"))))
-  
-  # PDF plots
-  pdf(file.path(csv_folder_fine_clusters, paste0(gsub("local_heights_rough_clusters\\.csv$", "", basename(curr_file_name)), "fine_clusters_plot", ".pdf")), # , today()
-      onefile = TRUE, paper = "a4", height = 14)
-  
-  # par(mfrow=c(3,1))
-  # Set plot layout
-  layout(mat = matrix(c(1, 2, 3, 4), 
-                      nrow = 4, 
-                      ncol = 1),
-         heights = c(2,1,1,1))# ,    # Heights of the two rows
-  # widths = c(2, 1))     # Widths of the two columns
-  # layout.show(4)
-  # tree
-  plot(hc1, cex = 0.6, hang = -1)
-  abline(a=h_min, b=0, col="blue", lty=2)
-  abline(a=h_max, b=0, col="blue", lty=2)
-  
-  # curve and differences
-  plot(ommatidia.no.df$h, ommatidia.no.df$ommatidia.no) # , ylim = c(0,max(ommatidia.no.df$ommatidia.no))
-  lines(x=rep(h.cutoff$x, 2), y = c(min(ommatidia.no.df$ommatidia.no), max(ommatidia.no.df$ommatidia.no)),
-        col = "blue", lty=2)
-  plot(ommatidia.no.df$h, ommatidia.no.df$ommatidia.no.diff, type="l")
-  lines(x=rep(h.cutoff$x, 2), y = c(min(ommatidia.no.df$ommatidia.no.diff), max(ommatidia.no.df$ommatidia.no.diff)),
-        col = "blue", lty=2)
-  abline(a=0, b=0, col="red", lty=2)
-  
-  # Histogram
-  hist.plot <- hist(dist.clusters.tbl$value)
-  break_size <- hist.plot$breaks[2]
-  hist_x <- hist.plot$breaks[which(hist.plot$counts == max(hist.plot$counts))] + break_size/2
-  lines(x = rep(hist_x, 2), y=c(0, (max(hist.plot$counts) + 0.05 * max(hist.plot$counts))),
-        col = "blue", lty = 2)
-  # par(mfrow=c(1,1))
-  dev.off()
+  if(!is.null(plot_file)){
+    print(paste0("Saving plots as ", plot_file))
+    
+    
+    # PDF plots
+    pdf(plot_file, # , today()
+        onefile = TRUE, paper = "a4", height = 14)
+    
+    # par(mfrow=c(3,1))
+    # Set plot layout
+    layout(mat = matrix(c(1, 2, 3, 4), 
+                        nrow = 4, 
+                        ncol = 1),
+           heights = c(2,1,1,1))# ,    # Heights of the two rows
+    # widths = c(2, 1))     # Widths of the two columns
+    # layout.show(4)
+    # tree
+    plot(hc1, cex = 0.6, hang = -1)
+    abline(a=h_min, b=0, col="blue", lty=2)
+    abline(a=h_max, b=0, col="blue", lty=2)
+    
+    # curve and differences
+    plot(ommatidia.no.df$h, ommatidia.no.df$ommatidia.no) # , ylim = c(0,max(ommatidia.no.df$ommatidia.no))
+    lines(x=rep(h.cutoff$x, 2), y = c(min(ommatidia.no.df$ommatidia.no), max(ommatidia.no.df$ommatidia.no)),
+          col = "blue", lty=2)
+    plot(ommatidia.no.df$h, ommatidia.no.df$ommatidia.no.diff, type="l")
+    lines(x=rep(h.cutoff$x, 2), y = c(min(ommatidia.no.df$ommatidia.no.diff), max(ommatidia.no.df$ommatidia.no.diff)),
+          col = "blue", lty=2)
+    abline(a=0, b=0, col="red", lty=2)
+    
+    # Histogram
+    hist.plot <- hist(dist.clusters.tbl$value)
+    break_size <- hist.plot$breaks[2]
+    hist_x <- hist.plot$breaks[which(hist.plot$counts == max(hist.plot$counts))] + break_size/2
+    lines(x = rep(hist_x, 2), y=c(0, (max(hist.plot$counts) + 0.05 * max(hist.plot$counts))),
+          col = "blue", lty = 2)
+    # par(mfrow=c(1,1))
+    dev.off()
+  }
   
   print(paste0("Found ", nrow(df.fin.clean), " facet center candiates. Check 3D plot device."))
   end_time <- Sys.time()
@@ -274,6 +281,6 @@ find_facet_peaks_fine <- function(df,
   
   return(df.fin.clean %>% 
            mutate(cutoff_min = round(h_min,3),
-                 cutoff_max = round(round(h_max, 3),3),
-                 cutoff_fin = round(h.cutoff$x, 3)))
+                  cutoff_max = round(round(h_max, 3),3),
+                  cutoff_fin = round(h.cutoff$x, 3)))
 }
