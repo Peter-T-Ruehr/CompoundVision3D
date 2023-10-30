@@ -4,7 +4,7 @@
 \alias{get_height_colors}
 \title{Get colour values !HERE: Change description}
 \usage{
-get_height_colors(heights)
+get_height_colors(heights, lower_qunatile = NULL, upper_qunatile = NULL)
 }
 \arguments{
 \item{df}{A tibble containing triangle center coordinates in columns \verb{x, y, z}.}
