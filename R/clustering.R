@@ -1,3 +1,53 @@
+#' Find threshold for agglomerative clustering
+#'
+#' Very roughly find clusters around facet peaks.
+#'
+#'# find good threshold - choose x,y, x,z or other dimension combinations to get reasonable plots
+#' @export
+find_threshold <- function(df = local_heights,
+                           column1 = "x",
+                           column2 = "y",
+                           height_column,
+                           min_threshold = 1,
+                           max_treshold = 2.5, 
+                           trials = 12,
+                           plot_file = NULL){
+  
+  par(mfrow=c(3,4))
+  for(curr_thrsh in round(seq(min_threshold, max_treshold, length.out = trials),2)){
+    df_tmp <- df %>% 
+      filter(!!as.symbol(height_column) >= curr_thrsh) 
+    plot(df_tmp %>%
+           select(!!as.symbol(column1),
+                  !!as.symbol(column2)),
+         col = "black",
+         pch=16,
+         cex = .1,
+         main=paste0(round(curr_thrsh,2), "; n = ", nrow(df_tmp)))
+  }
+  par(mfrow=c(1,1))
+  
+  if(!is.null(plot_file)){
+    pdf(file = plot_file, # , today()
+        onefile = TRUE, width = (21.0-4)/1.5, height = (((21.0-4)))*3/4)
+    par(mfrow=c(3,4))
+    for(curr_thrsh in round(seq(min_threshold, max_treshold, length.out = trials),2)){
+      local_heights_tmp <- local_heights %>% 
+        filter(!!as.symbol(height_column) >= curr_thrsh) 
+      plot(local_heights_tmp %>%
+             select(x,y),
+           col = "black",
+           pch=16,
+           cex = .1,
+           main=paste0(round(curr_thrsh,2), "; n = ", nrow(local_heights_tmp)))
+    }
+    dev.off()
+    par(mfrow=c(1,1))
+  }
+}
+
+
+
 #' Rough clustering towards Facet Peaks
 #'
 #' Very roughly find clusters around facet peaks.
@@ -20,12 +70,20 @@
 #' @examples
 #' # xxx: add example
 #' 
-find_facet_peaks_rough <- function(df,
-                                   local_height_threshold = 2.5,
-                                   height_column,
-                                   clust_melt_rad, 
-                                   # iterations = 1,
-                                   cores = 1){
+find_facets_rough <- function(df,
+                              local_height_threshold = 2.5,
+                              height_column,
+                              clust_melt_rad, 
+                              # iterations = 1,
+                              cores = 1){
+  
+  # # testing
+  # local_height_threshold = 2
+  # df = local_heights
+  # height_column = "local_height_log"
+  # clust_melt_rad = 1.0*round(1/8*curr_search_diam,2)
+  # cores = 12
+  
   # load multi-core package
   require(doParallel)
   
@@ -50,7 +108,7 @@ find_facet_peaks_rough <- function(df,
   # plot3d(df,
   #        aspect = "iso")
   
-  message("Getting agglomerative clusters...")
+  message("Getting agglomerative clusters using ", nrow(df), " vertices to start with ...")
   
   registerDoParallel(cores)
   # for(k in 1:iterations){
@@ -107,7 +165,7 @@ find_facet_peaks_rough <- function(df,
 #'
 #' @param df A tibble containing triangle center coordinates of vertices that 
 #' lie above threshold in columns `x, y, z` . 
-#' Typically, this is the resulting tibble of the `find_facet_peaks_rough()` 
+#' Typically, this is the resulting tibble of the `find_facets_rough()` 
 #' function.
 #' @param cols_to_use A numerical value of which columns store x,y,z coordinates 
 #' of rough clustering.
@@ -118,12 +176,12 @@ find_facet_peaks_rough <- function(df,
 #' @examples
 #' # xxx: add example
 #' 
-find_facet_peaks_fine <- function(df,
-                                  cols_to_use,
-                                  h_min = NULL,
-                                  h_max = NULL,
-                                  n_steps = 100,
-                                  plot_file = NULL){
+find_facets_fine <- function(df,
+                             cols_to_use,
+                             h_min = NULL,
+                             h_max = NULL,
+                             n_steps = 100,
+                             plot_file = NULL){
   
   # # testing
   # df = rough_peaks
@@ -140,7 +198,7 @@ find_facet_peaks_fine <- function(df,
   d <- dist(df[,cols_to_use], method = "euclidean")
   hc1 <- hclust(d, method = "complete" )
   
-  if(is.null(h_min)|is.null(h_max)){
+  if(is.null(h_min)| is.null(h_max)){
     # Hierarchical clustering using Complete Linkage
     message("Calculating and plotting dendrogram of hierarchichal clustering...")
     
@@ -197,10 +255,12 @@ find_facet_peaks_fine <- function(df,
   par(mfrow=c(1,1))
   
   message("select cut-off point on y axis.")
-  h.cutoff <- locator(type = "n", n=1)
+  h_final <- locator(type = "n", n=1)
+  
+  print(paste0("Final cut-off chosen: ", h_final$x[length(h_final$x)]))
   
   # save a vector (clusters.fin) that stores to which cluster each coordinate belongs
-  clusters.fin <- cutree(hc1, h = h.cutoff$x[length(h.cutoff$x)])
+  clusters.fin <- cutree(hc1, h = h_final$x[length(h_final$x)])
   # print(paste0("Found ", length(unique(clusters.fin)), " potential facets."))
   
   # add cluster-memberships (clusters.fin) to the cluster coordinates (df)
@@ -220,16 +280,15 @@ find_facet_peaks_fine <- function(df,
   # melt the distance matrix into a three-column tibble
   dist.clusters.tbl <- reshape2::melt(as.matrix((dist.clusters))) %>% as_tibble() %>% filter(Var1 < Var2)
   
-  # plot a histogram of all distances
-  hist.plot <- hist(dist.clusters.tbl$value)
-  break_size <- hist.plot$breaks[2]
-  hist_x <- hist.plot$breaks[which(hist.plot$counts == max(hist.plot$counts))] + break_size/2
-  lines(x = rep(hist_x, 2), y=c(0, (max(hist.plot$counts) + 0.05 * max(hist.plot$counts))),
-        col = "blue", lty = 2)
+  # # plot a histogram of all distances
+  # hist.plot <- hist(dist.clusters.tbl$value)
+  # break_size <- hist.plot$breaks[2]
+  # hist_x <- hist.plot$breaks[which(hist.plot$counts == max(hist.plot$counts))] + break_size/2
+  # lines(x = rep(hist_x, 2), y=c(0, (max(hist.plot$counts) + 0.05 * max(hist.plot$counts))),
+  #       col = "blue", lty = 2)
   
   
   clust.dist.med <- median(dist.clusters.tbl$value)
-  
   
   # filter the clusters that remain
   df.fin.clean <- df.fin %>% 
@@ -258,10 +317,10 @@ find_facet_peaks_fine <- function(df,
     
     # curve and differences
     plot(ommatidia.no.df$h, ommatidia.no.df$ommatidia.no) # , ylim = c(0,max(ommatidia.no.df$ommatidia.no))
-    lines(x=rep(h.cutoff$x, 2), y = c(min(ommatidia.no.df$ommatidia.no), max(ommatidia.no.df$ommatidia.no)),
+    lines(x=rep(h_final$x, 2), y = c(min(ommatidia.no.df$ommatidia.no), max(ommatidia.no.df$ommatidia.no)),
           col = "blue", lty=2)
     plot(ommatidia.no.df$h, ommatidia.no.df$ommatidia.no.diff, type="l")
-    lines(x=rep(h.cutoff$x, 2), y = c(min(ommatidia.no.df$ommatidia.no.diff), max(ommatidia.no.df$ommatidia.no.diff)),
+    lines(x=rep(h_final$x, 2), y = c(min(ommatidia.no.df$ommatidia.no.diff), max(ommatidia.no.df$ommatidia.no.diff)),
           col = "blue", lty=2)
     abline(a=0, b=0, col="red", lty=2)
     
@@ -282,5 +341,5 @@ find_facet_peaks_fine <- function(df,
   return(df.fin.clean %>% 
            mutate(cutoff_min = round(h_min,3),
                   cutoff_max = round(round(h_max, 3),3),
-                  cutoff_fin = round(h.cutoff$x, 3)))
+                  cutoff_fin = round(h_final$x, 3)))
 }
