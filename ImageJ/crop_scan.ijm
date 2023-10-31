@@ -58,6 +58,11 @@ else if (endsWith(filelist[1], "tif")){
 	print("Trying to open tif files in "+parent_dir_path+dir_sep+"...");
 	run("Image Sequence...", "open="+parent_dir_path+dir_sep+"*.tif file=.tif sort");
 }
+else if (endsWith(filelist[1], "jp2")){
+	print("Trying to open tif files in "+parent_dir_path+dir_sep+"...");
+	File.openSequence(parent_dir_path);
+}
+
 Stack.getDimensions(width,height,channels,slices,frames);
 setSlice(slices/2);
 makeRectangle(width/4, height/4, width/2, height/2);
