@@ -16,7 +16,7 @@
 #' @examples
 #' # xxx: add example
 #'
-get_local_height <- function(df,
+get_local_heights <- function(df,
                              search_diam,
                              cores = 1,
                              # normalize = NULL,
