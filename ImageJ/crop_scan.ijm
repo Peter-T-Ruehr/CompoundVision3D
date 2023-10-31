@@ -50,13 +50,18 @@ if(File.exists(parent_dir_path+dir_sep+"DICOMDIR")){
 	print("Trying to open: "+parent_dir_path+"DICOMDIR...");
 	run("Bio-Formats", "open=["+parent_dir_path+"DICOMDIR] color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT"); // display_metadata use_virtual_stack
 } 
-else if (endsWith(filelist[1], "dcm")){
+else if (endsWith(filelist[0], "dcm")){
 	print("Trying to open dcm files in "+parent_dir_path+dir_sep+"...");
 	run("Image Sequence...", "open="+parent_dir_path+dir_sep+"*.dcm file=.dcm sort");
 }
-else if (endsWith(filelist[1], "tif")){
+else if (endsWith(filelist[0], "tif")){
 	print("Trying to open tif files in "+parent_dir_path+dir_sep+"...");
-	run("Image Sequence...", "open="+parent_dir_path+dir_sep+"*.tif file=.tif sort");
+	if(filelist.length == 1){
+		open(parent_dir_path+dir_sep+filelist[0]);
+	}
+	else {
+		run("Image Sequence...", "open="+parent_dir_path+dir_sep+"*.tif file=.tif sort");
+	}
 }
 else if (endsWith(filelist[1], "jp2")){
 	print("Trying to open tif files in "+parent_dir_path+dir_sep+"...");
