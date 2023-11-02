@@ -55,11 +55,12 @@ else if (endsWith(filelist[0], "dcm")){
 	run("Image Sequence...", "open="+parent_dir_path+dir_sep+"*.dcm file=.dcm sort");
 }
 else if (endsWith(filelist[0], "tif")){
-	print("Trying to open tif files in "+parent_dir_path+dir_sep+"...");
 	if(filelist.length == 1){
+	print("Trying to open single tif file in "+parent_dir_path+dir_sep+"...");
 		open(parent_dir_path+dir_sep+filelist[0]);
 	}
 	else {
+	print("Trying to open multiple tif files in "+parent_dir_path+dir_sep+"...");
 		run("Image Sequence...", "open="+parent_dir_path+dir_sep+"*.tif file=.tif sort");
 	}
 }
@@ -218,6 +219,7 @@ if(perc_d<100){
 
 getPixelSize(unit_, px_size_sc, ph, pd);
 
+
 // crop eye 1
 selectWindow("original");
 run("Duplicate...", "duplicate range=first_image_eye1-last_image_eye1");
@@ -225,6 +227,7 @@ run("Duplicate...", "duplicate range=first_image_eye1-last_image_eye1");
 makeRectangle(x_eye1[0], y_eye1[0], x_eye1[2]-x_eye1[0], y_eye1[2]-y_eye1[0]);
 run("Crop");
 title_eye1 = getTitle();
+print(title_eye1);
 
 //Create target directory to save tiffs/nrrds in
 print("Creating target directory...");
@@ -239,25 +242,13 @@ run("Nrrd ... ", "nrrd=[nrrd_file]");
 // save STL
 STL_path = parent_dir_path+dir_sep+specimen_name+"_"+ROI_name+dir_sep+"stl";
 File.makeDirectory(STL_path);
-title = getTitle();
 
 Stack.getDimensions(width_eye1,height_eye1,channels_eye1,slices_eye1,frames_eye1);
 setSlice(slices_eye1/2);
+setTool("line");
+//title_eye1 = getTitle();
+//print(title_eye1);
 
-waitForUser("Threshold", "Find appropriate threshold level.");
-	Dialog.create("Threshold");
-	Dialog.addMessage("Please eappropriate threshold level.");
-	Dialog.addNumber("Threshold :", 100);
-	Dialog.show();
-	
-	threshold_eye1 = Dialog.getNumber();
-
-run("3D Viewer");
-call("ij3d.ImageJ3DViewer.setCoordinateSystem", "false");
-call("ij3d.ImageJ3DViewer.add", title, "White", title, threshold_eye1, "true", "true", "true", "1", "2");
-
-waitForUser("Save STL...", "Save binary STL file for eye1 manually. Click okay AFTER saving is finished.");
-call("ij3d.ImageJ3DViewer.close");
 
 // crop eye 2
 selectWindow("original");
@@ -266,6 +257,7 @@ run("Duplicate...", "duplicate range=first_image_eye2-last_image_eye2");
 makeRectangle(x_eye2[0], y_eye2[0], x_eye2[2]-x_eye2[0], y_eye2[2]-y_eye2[0]);
 run("Crop");
 title_eye2 = getTitle();
+print(title_eye2);
 
 //Create target directory to save tiffs/nrrds in
 print("Creating target directory...");
@@ -280,25 +272,41 @@ run("Nrrd ... ", "nrrd=[nrrd_file]");
 // save STL
 STL_path = parent_dir_path+dir_sep+specimen_name+"_"+ROI_name+dir_sep+"stl";
 File.makeDirectory(STL_path);
-title = getTitle();
 
 Stack.getDimensions(width_eye2,height_eye2,channels_eye2,slices_eye2,frames_eye2);
 setSlice(slices_eye2/2);
 
-waitForUser("Threshold", "Find appropriate threshold level.");
-	Dialog.create("Threshold");
-	Dialog.addMessage("Please eappropriate threshold level.");
-	Dialog.addNumber("Threshold :", threshold_eye1);
+Dialog.create("Extract surface meshes?");
+Dialog.addMessage("___________________________________");
+	Dialog.addCheckbox("Extract surface meshes", true);
 	Dialog.show();
 	
-	threshold_eye2 = Dialog.getNumber();
+	extract_surfaces = Dialog.getCheckbox();
+	
+if(extract_surfaces == true){
+	selectWindow(title_eye1);
+	waitForUser("Threshold", "Find appropriate threshold level for eye1.");
+		Dialog.create("Threshold");
+		Dialog.addMessage("Please eappropriate threshold level for eye1.");
+		Dialog.addNumber("Threshold :", 100);
+		Dialog.show();
+		
+		threshold_eye1 = Dialog.getNumber();
+	
+	
+	selectWindow(title_eye2);
+	waitForUser("Threshold", "Find appropriate threshold level for eye1.");
+		Dialog.create("Threshold");
+		Dialog.addMessage("Please eappropriate threshold level for eye1.");
+		Dialog.addNumber("Threshold :", threshold_eye1);
+		Dialog.show();
+		
+		threshold_eye2 = Dialog.getNumber();
+} else {
+	threshold_eye1 = "NA"
+	threshold_eye2 = "NA"
+}
 
-run("3D Viewer");
-call("ij3d.ImageJ3DViewer.setCoordinateSystem", "false");
-call("ij3d.ImageJ3DViewer.add", title, "White", title, threshold_eye2, "true", "true", "true", "1", "2");
-
-waitForUser("Save STL...", "Save binary STL file for eye1 manually. Click okay AFTER saving is finished.");
-call("ij3d.ImageJ3DViewer.close");
 
 print("************************************");
 File.makeDirectory(log_dir_path);
@@ -324,6 +332,26 @@ print(open_log_file, "scaling_head = " + d);
 print(open_log_file, "px_size_head = " + px_size_sc + " " + unit);
 File.close(open_log_file)
 print("************************************");
+
+if(extract_surfaces == true){
+	print("Extracting surfaces");
+	selectWindow(title_eye1);
+	run("3D Viewer");
+	call("ij3d.ImageJ3DViewer.setCoordinateSystem", "false");
+	call("ij3d.ImageJ3DViewer.add", title_eye1, "White", title_eye1, threshold_eye1, "true", "true", "true", "1", "2");
+	
+	waitForUser("Save STL...", "Save binary STL file for eye1 manually. Click okay AFTER saving is finished.");
+	call("ij3d.ImageJ3DViewer.close");
+	
+	
+	selectWindow(title_eye2);
+	run("3D Viewer");
+	call("ij3d.ImageJ3DViewer.setCoordinateSystem", "false");
+	call("ij3d.ImageJ3DViewer.add", title_eye2, "White", title_eye2, threshold_eye2, "true", "true", "true", "1", "2");
+	
+	waitForUser("Save STL...", "Save binary STL file for eye1 manually. Click okay AFTER saving is finished.");
+	call("ij3d.ImageJ3DViewer.close");
+}
 
 while (nImages>0) { 
           selectImage(nImages); 
