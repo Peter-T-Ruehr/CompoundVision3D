@@ -239,34 +239,47 @@ get_local_heights <- function(df,
 #' # xxx: add example
 #'
 get_height_colors <- function(heights,
-                              lower_qunatile = NULL,
-                              upper_qunatile = NULL){
+                              lower_quantile = NULL,
+                              upper_quantile = NULL){
   
   # # testing
-  # lower_qunatile = NULL
-  # upper_qunatile = NULL
+  # lower_quantile = NULL
+  # upper_quantile = NULL
   # heights = local_heights$local_height
-  # lower_qunatile = 0.9
-  # upper_qunatile = 0.9
+  # heights = 10^local_heights$local_height
+  # range(heights)
+  # lower_quantile = 0.1
+  # upper_quantile = 0.9
   
-  if(!is.null(upper_qunatile) & !is.null(lower_qunatile)){
+  
+  if(!is.null(upper_quantile) & !is.null(lower_quantile)){
     # set upper and lower boundary for local heights
     heights[heights >= 
-              quantile(heights, upper_qunatile)] <-
-      quantile(heights, upper_qunatile)
-    heights[heights <= 
-              -1*quantile(heights, lower_qunatile)] <-
-      -1*quantile(heights, lower_qunatile)
+              quantile(heights, upper_quantile)] <-
+      quantile(heights, upper_quantile)
+    
+    if(min(heights) < 0){
+      print("non-logarigthmic")
+      heights[heights <= 
+                quantile(heights, lower_quantile)] <-
+        quantile(heights, lower_quantile)
+    } else{
+      print("logarigthmic")
+      heights[heights <= 
+                quantile(heights, lower_quantile)] <-
+        quantile(heights, lower_quantile)
+    }
   }
   
   message("Adding colours for height values...")
   # create color vector
-  color_df <- tibble(local_height = 0:100, 
-                     local_height_col = grey.colors(101, start=0.0))
+  color_df <- tibble(local_height = round(seq(0, 100000-1, length.out = 100000)), 
+                     local_height_col = grey.colors(100000, start=0.0)) %>% 
+    distinct(local_height, .keep_all = TRUE)
   
   # add colors
   local_height_cols <- tibble(local_height = heights) %>% 
-    mutate(local_height = round(rescale_to_range(local_height, 0, 100))) %>% 
+    mutate(local_height = round(rescale_to_range(local_height, 1, 100000))) %>% 
     left_join(color_df, by = "local_height") %>% 
     pull(local_height_col)
   
