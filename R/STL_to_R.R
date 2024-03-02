@@ -59,7 +59,7 @@ STL_2_tibble <- function(file_name){
   }
   
   # get vertex coordinates of triangle centers
-  print(paste0("Extracting coordinates triangle centers..."))
+  print(paste0("Extracting coordinates of triangle centers..."))
   vertex_coords_triangle_centers <- vertex_coords_triangles %>% 
     mutate("ID" = IDs) %>% 
     group_by(ID) %>% 
