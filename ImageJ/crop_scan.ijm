@@ -1,7 +1,8 @@
-script_version = "0.9.17";
+script_version = "0.9.18";
 
 // data at X:\Pub\2019\Ruehr_compound_vision\data
 
+run("Collect Garbage");
 requires("1.39l");
 if (isOpen("Log")) { 
      selectWindow("Log"); 
@@ -56,17 +57,30 @@ else if (endsWith(filelist[0], "dcm")){
 }
 else if (endsWith(filelist[0], "tif")){
 	if(filelist.length == 1){
-	print("Trying to open single tif file in "+parent_dir_path+dir_sep+"...");
+		print("Trying to open single tif file in "+parent_dir_path+dir_sep+"...");
 		open(parent_dir_path+dir_sep+filelist[0]);
 	}
 	else {
-	print("Trying to open multiple tif files in "+parent_dir_path+dir_sep+"...");
+		print("Trying to open multiple tif files in "+parent_dir_path+dir_sep+"...");
 		run("Image Sequence...", "open="+parent_dir_path+dir_sep+"*.tif file=.tif sort");
 	}
 }
-else if (endsWith(filelist[1], "jp2")){
-	print("Trying to open tif files in "+parent_dir_path+dir_sep+"...");
+else if (endsWith(filelist[0], "tiff")){
+	print("Trying to open multiple tiff files in "+parent_dir_path+dir_sep+"...");
 	File.openSequence(parent_dir_path);
+}
+else if (endsWith(filelist[0], "jp2")){
+	print("Trying to open jp2 files in "+parent_dir_path+dir_sep+"...");
+	File.openSequence(parent_dir_path);
+}
+else if (endsWith(filelist[0], ".am")){
+	print("Trying to open an Amira(R) file in "+parent_dir_path+dir_sep+"...");
+	open(parent_dir_path+dir_sep+filelist[0]);
+}
+else if (endsWith(filelist[0], ".nrrd")){
+	print("Trying to open nrrd file in "+parent_dir_path+dir_sep+"...");
+	File.openSequence(parent_dir_path);
+	run("Nrrd ...", "load=[+parent_dir_path+dir_sep+filelist[0]]");
 }
 
 Stack.getDimensions(width,height,channels,slices,frames);
@@ -303,8 +317,8 @@ if(extract_surfaces == true){
 		
 		threshold_eye2 = Dialog.getNumber();
 } else {
-	threshold_eye1 = "NA"
-	threshold_eye2 = "NA"
+	threshold_eye1 = "NA";
+	threshold_eye2 = "NA";
 }
 
 
@@ -358,5 +372,6 @@ while (nImages>0) {
           close(); 
 }
 
+run("Collect Garbage");
 print("All done!");
 print("************************************");
