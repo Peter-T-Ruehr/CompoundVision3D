@@ -41,8 +41,8 @@ STL_2_tibble <- function(file_name){
   close(file_in)
   
   # convert character vector lines to tibble
-  print("Converting to tibble...")
   lines_tbl <- as_tibble(lines)
+  print(paste0("Converting to tibble with ", nrow(lines_tbl), " lines ..."))
   
   # get coordinates of triangle vertices from lines_tbl
   print("Extracting vertex coordinates of triangles...")
@@ -59,7 +59,7 @@ STL_2_tibble <- function(file_name){
   }
   
   # get vertex coordinates of triangle centers
-  print("Extracting coordinates of triangle centers...")
+  print(paste0("Extracting coordinates triangle centers..."))
   vertex_coords_triangle_centers <- vertex_coords_triangles %>% 
     mutate("ID" = IDs) %>% 
     group_by(ID) %>% 
@@ -71,7 +71,7 @@ STL_2_tibble <- function(file_name){
     arrange(ID) 
   
   # get normals of triangles
-  print("Extracting triangle normals...")
+  print(paste0("Extracting triangle normals..."))
   normals <-  lines_tbl %>% 
     filter(grepl("facet normal", value)) %>% 
     separate(value, into = c("value.1", "value.2", "norm.x", "norm.y", "norm.z"), sep = " ") %>% 
@@ -83,6 +83,8 @@ STL_2_tibble <- function(file_name){
   # join triangle center coordinates and their normals
   tri_centers_normals <- left_join(vertex_coords_triangle_centers, normals, by = "ID") %>% 
     ungroup()
+  
+  print(paste0(" Found ", nrow(tri_centers_normals), " triangle coordinates."))
   
   # # plot triangle center coordinates
   plot3d(tri_centers_normals %>%
