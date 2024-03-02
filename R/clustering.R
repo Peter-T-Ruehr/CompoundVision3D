@@ -32,14 +32,15 @@ find_threshold <- function(df = local_heights,
         onefile = TRUE, width = (21.0-4)/1.5, height = (((21.0-4)))*3/4)
     par(mfrow=c(3,4))
     for(curr_thrsh in round(seq(min_threshold, max_treshold, length.out = trials),2)){
-      local_heights_tmp <- local_heights %>% 
+      df_tmp <- local_heights %>% 
         filter(!!as.symbol(height_column) >= curr_thrsh) 
-      plot(local_heights_tmp %>%
-             select(x,y),
+      plot(df_tmp %>%
+             select(!!as.symbol(column1),
+                    !!as.symbol(column2)),
            col = "black",
            pch=16,
            cex = .1,
-           main=paste0(round(curr_thrsh,2), "; n = ", nrow(local_heights_tmp)))
+           main=paste0(round(curr_thrsh,2), "; n = ", nrow(df_tmp)))
     }
     dev.off()
     par(mfrow=c(1,1))
@@ -337,6 +338,18 @@ find_facets_fine <- function(df,
   print(paste0("Found ", nrow(df.fin.clean), " facet center candiates. Check 3D plot device."))
   end_time <- Sys.time()
   print(end_time - start_time)
+  
+  # plot eye in 3D to get overview
+  message("Plotting 'SEM'-coloured eye in RGL 3D window. Check it out to get overview.")
+  plot3d(df %>% 
+           select(all_of(cols_to_use)), 
+         # col = local_heights$local_height_col_log, 
+         aspect = "iso")
+  
+  # plot the cluster centers
+  spheres3d(df.fin.clean %>% 
+              select(x,y,z), 
+            col="red", radius=5, alpha = 1)
   
   return(df.fin.clean %>% 
            mutate(cutoff_min = round(h_min,3),
