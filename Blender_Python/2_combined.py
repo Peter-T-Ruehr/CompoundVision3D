@@ -1,4 +1,5 @@
 import bpy
+bpy.context.scene.unit_settings.length_unit = 'CENTIMETERS'
 
 # apply scale and modifiers
 bpy.ops.object.modifier_add(type='DECIMATE')

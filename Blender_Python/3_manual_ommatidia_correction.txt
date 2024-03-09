@@ -1,11 +1,13 @@
 import bpy, csv, math
 from math import pi
+bpy.context.scene.unit_settings.length_unit = 'CENTIMETERS'
+
 # PC1,PC2,PC3,group,col
 col_num = 4
 
-radius = 0.0025
-text_resize = 0.2  
-tick_resize = 4
+radius = 0.0025 # 0.025 0.0025
+segments = 16 # 4 16
+ring_count = 8 # 3 8 
 
 camera_type = 'PERSP' # 'ORTHO' 'PERSP'
 
@@ -31,7 +33,8 @@ def hex2col(hex, normalize=False, precision=None):
 ## remove all
 #bpy.ops.object.delete(use_global=False, confirm=False)
 
-file = csv.reader(open('X:/Pub/2021/_Ruehr_AntVision/data/3_triangle_centers_and_normals/pre_correction/AV00022_Crematogaster_pimicola_DICOM_eye2_surface.csv', newline=''), delimiter=',')
+# file = csv.reader(open('X:/Pub/2021/_Ruehr_AntVision/data/3_triangle_centers_and_normals/pre_correction/AV00022_Crematogaster_pimicola_DICOM_eye2_surface.csv', newline=''), delimiter=',')
+file = csv.reader(open('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/6_fine_clusters/CV0005_Apis_mellifera_60185_eye1_fine_clusters.csv', newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_fine_clusters
 
 print(file)
 
@@ -48,7 +51,7 @@ for idx, row in enumerate(file):
         z = float(row[2])
 
         bpy.ops.mesh.primitive_uv_sphere_add( location = ( x/1000, y/1000, z/1000 ),
-            segments=16, ring_count=8, radius=radius)
+            segments=segments, ring_count=ring_count, radius=radius)
 
         ob = bpy.context.object
         ob.name = row[3]
@@ -66,7 +69,8 @@ for idx, row in enumerate(file):
         mat = bpy.data.materials.new(name=curr_material)
         mat.diffuse_color = curr_RGB
         me.materials.append(mat)
-		
-		print(idx)
+        
+        if idx % 10 == 0:
+            print(idx)
 
 print("All done!")
