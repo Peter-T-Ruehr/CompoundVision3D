@@ -9,6 +9,7 @@ find_facets_fine(
   cols_to_use,
   h_min = NULL,
   h_max = NULL,
+  h_final = NULL,
   n_steps = 100,
   plot_file = NULL
 )

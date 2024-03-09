@@ -181,14 +181,20 @@ find_facets_fine <- function(df,
                              cols_to_use,
                              h_min = NULL,
                              h_max = NULL,
+                             h_final = NULL,
                              n_steps = 100,
                              plot_file = NULL){
   
   # # testing
   # df = rough_peaks
-  # cols_to_use = (ncol(rough_peaks)-2):ncol(rough_peaks)
-  # h_min = NULL
-  # h_max = NULL
+  # cols_to_use = 1:3
+  # h_min = 22.448
+  # h_max = 10.002
+  # h_final = 15.013
+  # n_steps = 100
+  # plot_file = file.path(fine_clusters_folder,
+  #                       gsub("csv$", "pdf", curr_filename_out))
+  
   start_time <- Sys.time()
   # dplyr NULLs
   ID <- x <- y <- z <- cluster <- Var1 <- Var2 <- '.' <- NULL
@@ -199,7 +205,7 @@ find_facets_fine <- function(df,
   d <- dist(df[,cols_to_use], method = "euclidean")
   hc1 <- hclust(d, method = "complete" )
   
-  if(is.null(h_min)| is.null(h_max)){
+  if(is.null(h_min) | is.null(h_max)){
     # Hierarchical clustering using Complete Linkage
     message("Calculating and plotting dendrogram of hierarchichal clustering...")
     
@@ -255,10 +261,15 @@ find_facets_fine <- function(df,
   abline(a=0, b=0, col="red", lty=2)
   par(mfrow=c(1,1))
   
-  message("select cut-off point on y axis.")
-  h_final <- locator(type = "n", n=1)
+  if(is.null(h_final)){
+    message("select cut-off point on y axis.")
+    h_final <- locator(type = "n", n=1)
+    print(paste0("Final cut-off chosen: ", h_final$x[length(h_final$x)]))
+  } else if(is.numeric(h_final)){
+    h_final <- data.frame(x=h_final)
+    message(paste0("Final cut-off value defined as: ", round(h_final,3),"."))
+  }
   
-  print(paste0("Final cut-off chosen: ", h_final$x[length(h_final$x)]))
   
   # save a vector (clusters.fin) that stores to which cluster each coordinate belongs
   clusters.fin <- cutree(hc1, h = h_final$x[length(h_final$x)])
