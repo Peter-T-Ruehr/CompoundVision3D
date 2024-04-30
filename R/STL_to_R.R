@@ -1,6 +1,8 @@
-#' Import STL as Tibble
+#' Import STL triangles (facets) as Tibble
 #'
-#' Imports triangle centers and triangle normals of STL file as tibble.
+#' Imports triangle centers and triangle normals of STL file as tibble. We use 
+#' the word 'triangle' here to refer to the facets of an STL mesh to avoid 
+#' confusion with the facets of compound eyes.
 #'
 #' @param file_name File name of STL to import.
 #'
@@ -24,7 +26,7 @@
 #' @examples
 #' # xxx: add example
 #'
-STL_2_tibble <- function(file_name){
+STL_triangles <- function(file_name){
   # dplyr NULLs
   ID <- x <- y <- z <- value <- value.1 <- value.2 <- row_number <- norm.x <- 
     norm.y <- norm.z <- NULL
@@ -115,4 +117,80 @@ STL_2_tibble <- function(file_name){
   
   print("done!")
   return(tri_centers_normals)
+}
+
+
+
+
+
+
+
+
+#' Import STL vertices as Tibble
+#'
+#' Imports vertex coordinates of STL file as tibble.
+#'
+#' @param file_name File name of STL to import.
+#'
+#' @return A tibble containing vertex coordinates of STL file.
+#'
+#' @export
+#' @importFrom doParallel registerDoParallel stopImplicitCluster
+#' @importFrom dplyr filter pull select mutate arrange slice group_by ungroup left_join summarize distinct
+#' first lead lag case_when bind_cols tibble as_tibble desc progress_estimated bind_rows all_of rename n 
+#' mutate_all
+#' @importFrom foreach foreach '%dopar%'
+#' @importFrom magrittr '%>%'
+#' @importFrom geometry dot
+#' @importFrom graphics locator par abline hist
+#' @importFrom grDevices grey.colors
+#' @importFrom readr write_csv
+#' @importFrom reshape2 melt
+#' @importFrom rgl plot3d spheres3d selectpoints3d points3d text3d
+#' @importFrom tidyr separate
+#' @importFrom stats dist hclust setNames cutree median
+#' @examples
+#' # xxx: add example
+#'
+#'
+STL_vertices <- function(file_name){
+  
+  # dplyr NULLs
+  ID <- x <- y <- z <- value <- value.1 <- value.2 <- row_number <- norm.x <-
+    norm.y <- norm.z <- NULL
+  
+  # # testing:
+  # file_name <- "X:/Pub/2021/_Ruehr_AntVision/data/2_STLs/1_new/AV00001_Camponotus_hyatti_eye1_surface.stl"
+  
+  # load STL file as lines
+  print(paste0("Importing ", file_name, "..." ))
+  file_in <- file(file_name, open = "r")
+  lines <- readLines(file_in)
+  # delete first and last lines
+  lines <- lines[-c(1, length(lines))]
+  close(file_in)
+  
+  # convert character vector lines to tibble
+  lines_tbl <- as_tibble(lines)
+  print(paste0("Converting to tibble with ", nrow(lines_tbl), " lines ..."))
+  
+  # get coordinates of triangle vertices from lines_tbl
+  print("Extracting vertex coordinates of triangles")
+  vertex_coords_triangles <- lines_tbl %>%
+    filter(grepl("vertex", value)) %>%
+    separate(value, into = c("value", "x", "y", "z"), sep = " ") %>%
+    select(-value) %>%
+    distinct() %>%
+    mutate_all(as.numeric)
+  
+  print(paste0(" Found ", nrow(vertex_coords_triangles), " vertices."))
+  
+  # # plot triangle center coordinates
+  plot3d(vertex_coords_triangles %>%
+           select(x,y,z),
+         aspect = "iso",
+         col = "blue")
+  
+  print("done!")
+  return(vertex_coords_triangles)
 }
