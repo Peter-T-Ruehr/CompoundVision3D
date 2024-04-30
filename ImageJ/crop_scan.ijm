@@ -53,7 +53,8 @@ if(File.exists(parent_dir_path+dir_sep+"DICOMDIR")){
 } 
 else if (endsWith(filelist[0], "dcm")){
 	print("Trying to open dcm files in "+parent_dir_path+dir_sep+"...");
-	run("Image Sequence...", "open="+parent_dir_path+dir_sep+"*.dcm file=.dcm sort");
+	// run("Image Sequence...", "open="+parent_dir_path+dir_sep+"*.dcm file=.dcm sort");
+	File.openSequence(parent_dir_path+dir_sep);
 }
 else if (endsWith(filelist[0], "tif")){
 	if(filelist.length == 1){
@@ -82,7 +83,7 @@ else if (endsWith(filelist[0], ".nrrd")){
 	File.openSequence(parent_dir_path);
 	run("Nrrd ...", "load=[+parent_dir_path+dir_sep+filelist[0]]");
 }
-
+das
 Stack.getDimensions(width,height,channels,slices,frames);
 setSlice(slices/2);
 makeRectangle(width/4, height/4, width/2, height/2);
