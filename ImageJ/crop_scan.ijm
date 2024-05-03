@@ -1,4 +1,4 @@
-script_version = "0.9.18";
+script_version = "0.9.9019";
 
 // data at X:\Pub\2019\Ruehr_compound_vision\data
 
@@ -83,7 +83,7 @@ else if (endsWith(filelist[0], ".nrrd")){
 	File.openSequence(parent_dir_path);
 	run("Nrrd ...", "load=[+parent_dir_path+dir_sep+filelist[0]]");
 }
-das
+
 Stack.getDimensions(width,height,channels,slices,frames);
 setSlice(slices/2);
 makeRectangle(width/4, height/4, width/2, height/2);
@@ -176,7 +176,7 @@ Dialog.create("Scaling settings");
 	Dialog.addMessage("___________________________________");
 	Dialog.addNumber("Scale to [MB]: ", 120);
 	Dialog.addMessage("___________________________________");
-	Dialog.addMessage("PTR, Jan. 2022");
+	Dialog.addMessage("PTR, Jan. 2022-2024");
 	Dialog.addMessage("Bonn Univ., Bonn, Germany");
 	Dialog.show();
 	d_size = Dialog.getNumber()/1024;  //MB/1024=GB
