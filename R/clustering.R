@@ -256,8 +256,12 @@ find_facets_fine <- function(df,
     mutate(ommatidia.no.diff = ommatidia.no - lag(ommatidia.no, default = ommatidia.no[2]))
   
   par(mfrow=c(2,1))
-  plot(ommatidia.no.df$h, ommatidia.no.df$ommatidia.no) # , ylim = c(0,max(ommatidia.no.df$ommatidia.no))
-  plot(ommatidia.no.df$h, ommatidia.no.df$ommatidia.no.diff, type="l")
+  plot(ommatidia.no.df$h, ommatidia.no.df$ommatidia.no,
+       xlab = "clustering cut-off value",
+       ylab = "resulting facet number")
+  plot(ommatidia.no.df$h, ommatidia.no.df$ommatidia.no.diff, type="l",
+       xlab = "clustering cut-off value",
+       ylab = "delta facet number")
   abline(a=0, b=0, col="red", lty=2)
   par(mfrow=c(1,1))
   
