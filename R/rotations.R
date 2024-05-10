@@ -155,9 +155,13 @@ align_to_global_axis = function(df,
   # facet_positions_df_xyz_aligned_yx$x <- -1*facet_positions_df_xyz_aligned_yx$x
   # facet_positions_df_xyz_aligned_yx$z <- -1*facet_positions_df_xyz_aligned_yx$z
   
+  
+  # mirroring data
   df_xyz_aligned_yx_fin <- df_xyz_aligned_yx
   df_xyz_aligned_yx_fin$x <- -1*df_xyz_aligned_yx_fin$x
   df_xyz_aligned_yx_fin$z <- -1*df_xyz_aligned_yx_fin$z
+  df_xyz_aligned_yx_fin$norm.x <- -1*df_xyz_aligned_yx_fin$norm.x
+  df_xyz_aligned_yx_fin$norm.z <- -1*df_xyz_aligned_yx_fin$norm.z
   
   # plot3d(df_xyz_aligned_yx_fin, aspect = "iso")
   
