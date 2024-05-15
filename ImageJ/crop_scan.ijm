@@ -242,7 +242,9 @@ run("Duplicate...", "duplicate range=first_image_eye1-last_image_eye1");
 makeRectangle(x_eye1[0], y_eye1[0], x_eye1[2]-x_eye1[0], y_eye1[2]-y_eye1[0]);
 run("Crop");
 title_eye1 = getTitle();
-print(title_eye1);
+print(title_eye1 + " -> " + "eye1");
+rename("eye1");
+title_eye1 = getTitle();
 
 //Create target directory to save tiffs/nrrds in
 print("Creating target directory...");
@@ -261,8 +263,6 @@ File.makeDirectory(STL_path);
 Stack.getDimensions(width_eye1,height_eye1,channels_eye1,slices_eye1,frames_eye1);
 setSlice(slices_eye1/2);
 setTool("line");
-//title_eye1 = getTitle();
-//print(title_eye1);
 
 
 // crop eye 2
@@ -272,7 +272,9 @@ run("Duplicate...", "duplicate range=first_image_eye2-last_image_eye2");
 makeRectangle(x_eye2[0], y_eye2[0], x_eye2[2]-x_eye2[0], y_eye2[2]-y_eye2[0]);
 run("Crop");
 title_eye2 = getTitle();
-print(title_eye2);
+print(title_eye2 + " -> " + "eye2");
+rename("eye2");
+title_eye2 = getTitle();
 
 //Create target directory to save tiffs/nrrds in
 print("Creating target directory...");
@@ -302,7 +304,7 @@ if(extract_surfaces == true){
 	selectWindow(title_eye1);
 	waitForUser("Threshold", "Find appropriate threshold level for eye1.");
 		Dialog.create("Threshold");
-		Dialog.addMessage("Please eappropriate threshold level for eye1.");
+		Dialog.addMessage("Please set appropriate threshold level for eye1.");
 		Dialog.addNumber("Threshold :", 100);
 		Dialog.show();
 		
@@ -310,9 +312,9 @@ if(extract_surfaces == true){
 	
 	
 	selectWindow(title_eye2);
-	waitForUser("Threshold", "Find appropriate threshold level for eye1.");
+	waitForUser("Threshold", "Find appropriate threshold level for eye2.");
 		Dialog.create("Threshold");
-		Dialog.addMessage("Please eappropriate threshold level for eye1.");
+		Dialog.addMessage("Please set appropriate threshold level for eye2.");
 		Dialog.addNumber("Threshold :", threshold_eye1);
 		Dialog.show();
 		
@@ -364,7 +366,7 @@ if(extract_surfaces == true){
 	call("ij3d.ImageJ3DViewer.setCoordinateSystem", "false");
 	call("ij3d.ImageJ3DViewer.add", title_eye2, "White", title_eye2, threshold_eye2, "true", "true", "true", "1", "2");
 	
-	waitForUser("Save STL...", "Save binary STL file for eye1 manually. Click okay AFTER saving is finished.");
+	waitForUser("Save STL...", "Save binary STL file for eye2 manually. Click okay AFTER saving is finished.");
 	call("ij3d.ImageJ3DViewer.close");
 }
 
