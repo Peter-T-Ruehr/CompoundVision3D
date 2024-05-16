@@ -1,4 +1,4 @@
-script_version = "0.9.9019";
+script_version = "0.9.9020";
 
 // data at X:\Pub\2019\Ruehr_compound_vision\data
 
