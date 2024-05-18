@@ -23,9 +23,7 @@ align_to_global_axis = function(df,
   # df = all_coords_combined
   # line_points_y_ind = line_points_y
   # line_points_x_ind = line_points_x
-  # eye_landmarks = all_coords_combined %>%
-  #   filter(!is.na(norm.x)) %>%
-  #   row_number()
+  # eye_landmarks = eye_landmarks
   
   # select only xyz columns
   df_xyz <- df %>%
@@ -58,17 +56,22 @@ align_to_global_axis = function(df,
   u=x/sqrt(sum(x^2))
   
   v=y-sum(u*y)*u
-  v=v/sqrt(sum(v^2))
-  
-  cost=sum(x*y)/sqrt(sum(x^2))/sqrt(sum(y^2))
-  
-  sint=sqrt(1-cost^2);
-  
-  R <- diag(length(x)) - u %*% t(u) - v %*% t(v) +
-    cbind(u,v) %*% matrix(c(cost,-sint,sint,cost), 2) %*% t(cbind(u,v))
-  
-  df_xyz_aligned_y <- as_tibble(as.matrix(df_xyz)%*% R) %>%
-    round(., 8)
+  if(v[1] == 0 & v[2] == 0 & v[3] == 0){
+    print("already aligned to global y axis.")
+    df_xyz_aligned_y <- df_xyz
+  } else {
+    v=v/sqrt(sum(v^2))
+    
+    cost=sum(x*y)/sqrt(sum(x^2))/sqrt(sum(y^2))
+    
+    sint=sqrt(1-cost^2);
+    
+    R <- diag(length(x)) - u %*% t(u) - v %*% t(v) +
+      cbind(u,v) %*% matrix(c(cost,-sint,sint,cost), 2) %*% t(cbind(u,v))
+    
+    df_xyz_aligned_y <- as_tibble(as.matrix(df_xyz)%*% R) %>%
+      round(., 8)
+  }
   
   colnames(df_xyz_aligned_y) <- c("x", "y", "z")
   
@@ -100,7 +103,6 @@ align_to_global_axis = function(df,
   #          select(x, y, z),
   #        texts = LMS_df_xyz_aligned_y$ID)
   
-  # return(df_xyz_aligned_y)
   
   # rotate around y to align left and right landmarks in x axis
   # get angle between left-right axis of head to global x axis
@@ -267,7 +269,7 @@ align_to_global_axis = function(df,
   # plot3d(all_combined_yx_fin_trans_xyz_LR_rot_yz, aspect = "iso")
   # text3d(all_combined_yx_fin_trans_xyz_LR_rot_yz %>%
   #          select(x, y, z),
-  #        texts = all_combined_yx_fin_trans_xyz_LR_rot_yz$ID)
+  # texts = all_combined_yx_fin_trans_xyz_LR_rot_yz$ID)
   
   # # rotate around y if left is right
   # y_dist <- all_combined_yx_fin_trans_xyz_LR %>% 
