@@ -12,7 +12,7 @@
 #'
 #' @export
 #' @examples
-#' # xxx: add example
+#' # xxx: add example and change above descsriptionand parameters
 #'
 align_to_global_axis = function(df,
                                 line_points_y_ind,
