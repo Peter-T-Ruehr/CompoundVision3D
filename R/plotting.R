@@ -56,8 +56,8 @@ plot_eye <- function(facets_coords,
   #   select(x, y, z)
   # text_labels = LMs$ID
   
-  # close rgl window
-  while (rgl.cur() > 0) { close3d }
+  # # close rgl window
+  # while (rgl.cur() > 0) { close3d }
   
   if(facet_type == "s"){
     facet_radius = facet_sizes # /2
