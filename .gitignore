@@ -42,3 +42,4 @@ vignettes/*.pdf
 data/
 README.html
 GitHub_example
+inst/doc

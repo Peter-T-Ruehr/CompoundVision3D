@@ -1,0 +1,121 @@
+---
+title: "compoundvision3D"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{compoundvision3D}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<!-- ```{r, include = FALSE} -->
+<!-- knitr::opts_chunk$set( -->
+<!--   collapse = TRUE, -->
+<!--   comment = "#>" -->
+<!-- ) -->
+<!-- ``` -->
+
+
+
+## Introduction
+This documents illustrates the workflow of the CompoundVision3D package 
+using a dataset of *Drosophila melanogaster* published in
+
+Schoborg, T. A., Smith, S. L., Smith, L. N., Morris, H. D., & Rusan, N. M. (**2019**). Micro-computed tomography as a platform for exploring *Drosophila* development. *Development* **146**(23), dev176685. DOI: [10.1242/dev.176685](https://doi.org/10.1242/dev.176685).
+  
+## Code
+### Load compoundvision3D package:
+```{r setup1, warning=FALSE, message=FALSE}
+library(compoundvision3D)
+```
+
+### Load all other packages needed:
+```{r setup2, warning=FALSE, message=FALSE}
+# 3D plotting
+library(rgl)
+
+# load the whole tidyverse for its various conveniences
+library(tidyverse)
+```
+
+### Define folder with example data
+```{r define_folders, warning=FALSE, message=FALSE}
+source_directory = "./data"
+
+# create target folder if it does not yet exist
+target_directory = "./data/results"
+dir.create(target_directory)
+```
+
+### Convert STL with compound eye surface to a tibble
+```{r import_STL, warning=FALSE, message=FALSE}
+# define file list with STL files
+file_list <- list.files(source_directory, pattern = ".stl", full.names = TRUE)
+curr_filename <- file_list[1]
+
+# Import first STL of file lust
+tri_centers_normals <- STL_triangles(file_name = curr_filename, 
+                                     plot_results = FALSE,
+                                     verbose = FALSE)
+```
+
+### Convert STL with compound eye surface to a tibble
+```{r plot_imported_eye, eval=FALSE, warning=FALSE, message=FALSE}
+# plot imported eye data
+plot3d(tri_centers_normals %>% 
+         select(x,y,z),
+       size = 2, 
+       aspect = "iso")
+
+# draw some random vectors on eye to see if they point in the right directions
+vec.mult <- 100
+for(curr_facet in round(seq(1, nrow(tri_centers_normals), length.out = 50))){ # nrow(curr_facets)
+  normal_vectors_df_subset <- tri_centers_normals %>% 
+    filter(ID == curr_facet) %>% 
+    select(norm.x, norm.y, norm.z)
+  curr_facet_coordinates <- tri_centers_normals %>% 
+    filter(ID==curr_facet) %>% 
+    select(x,y,z)
+  
+  # find mean point of normalized normal vector ends
+  norm.x <- normal_vectors_df_subset$norm.x
+  norm.y <- normal_vectors_df_subset$norm.y
+  norm.z <- normal_vectors_df_subset$norm.z
+  
+  lines3d(x = c(curr_facet_coordinates %>% pull(x), curr_facet_coordinates %>% pull(x) + norm.x*vec.mult),
+          y = c(curr_facet_coordinates %>% pull(y), curr_facet_coordinates %>% pull(y) + norm.y*vec.mult),
+          z = c(curr_facet_coordinates %>% pull(z), curr_facet_coordinates %>% pull(z) + norm.z*vec.mult),
+          col = "red")
+}
+```
+![](./imgs/imported_eye_3D_plot.png){width=6in}
+
+
+### Export converted STL data
+```{r export_converted_STL_data, warning=FALSE, message=FALSE}
+# define tri_centers_normals file name
+tri_centers_normals_file <- gsub("_surface.stl", "_tri_centers_normals.csv", basename(curr_filename))
+
+# write csv with triangle centers and normals
+write_csv(tri_centers_normals, file.path(target_directory, tri_centers_normals_file))
+```
+
+
+### Manually define search diameter
+```{r define_search_diameter, eval=FALSE, warning=FALSE, message=FALSE}
+# manually select 2 neighboring facets to define search diameter
+curr_search_diam <- search_diam_interactive(df = tri_centers_normals)
+
+[1] "Rotate view so that two facet peaks are clearly identifyable."
+Finished rotation? ("y" = yes; "n" = no")
+[1] "Select the fist of two neighboring facet peaks. Then press the 'Esc' key."
+[1] "Select the seceond of two neighboring facet peaks. Then press the 'Esc' key."
+[1] "Facet diameter: ~12.72"
+[1] "Search diameter: 38.158"
+[1] "done!"
+``` 
+![](./imgs/search_diameter_definition.png){width=6in}
+
+```{r set_search_diameter, include=FALSE, warning=FALSE, message=FALSE}
+# manually select 2 neighboring facets to define search diameter
+curr_search_diam <- 38.158
+```

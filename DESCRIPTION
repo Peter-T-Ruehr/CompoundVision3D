@@ -25,6 +25,7 @@ Depends:
     R (>= 4.0)
 VignetteBuilder: knitr
 Suggests: 
+    rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Author: Peter T. Rühr <peter.ruehr@gmail.com>
