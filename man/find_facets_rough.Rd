@@ -37,6 +37,6 @@ peak.
 Very roughly find clusters around facet peaks.
 }
 \examples{
-# xxx: add example
+xxx: add example
 
 }

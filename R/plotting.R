@@ -24,7 +24,7 @@
 #' @importFrom tidyr separate
 #' @importFrom stats dist hclust setNames cutree median
 #' @examples
-#' # xxx: add example and change above parameter description
+#' xxx: add example and change above parameter description
 #' 
 plot_eye <- function(facets_coords,
                      facet_colours = "red",
@@ -94,7 +94,7 @@ plot_eye <- function(facets_coords,
 }
 
 
-#' # create a continuous color ramp
+#' create a continuous color ramp
 #'
 #' Imports triangle centers and triangle normals of STL file as tibble. We use 
 #' the word 'triangle' here to refer to the facets of an STL mesh to avoid 
@@ -120,7 +120,7 @@ plot_eye <- function(facets_coords,
 #' @importFrom tidyr separate
 #' @importFrom stats dist hclust setNames cutree median
 #' @examples
-#' # xxx: add example and change above parameter description
+#' xxx: add example and change above parameter description
 #' 
 continuous_color_ramp <- function(values, colors) {
   v <- (values - min(values))/diff(range(values))

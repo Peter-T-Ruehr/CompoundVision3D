@@ -29,6 +29,6 @@ the word 'triangle' here to refer to the facets of an STL mesh to avoid
 confusion with the facets of compound eyes.
 }
 \examples{
-# xxx: add example and change above parameter description
+xxx: add example and change above parameter description
 
 }

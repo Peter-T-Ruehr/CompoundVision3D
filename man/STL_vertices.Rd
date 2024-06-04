@@ -16,7 +16,7 @@ A tibble containing vertex coordinates of STL file.
 Imports vertex coordinates of STL file as tibble.
 }
 \examples{
-# xxx: add example
+xxx: add example
 
 
 }

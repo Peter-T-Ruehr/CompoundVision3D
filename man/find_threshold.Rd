@@ -19,5 +19,5 @@ find_threshold(
 Very roughly find clusters around facet peaks.
 }
 \details{
-# find good threshold - choose x,y, x,z or other dimension combinations to get reasonable plots
+find good threshold - choose x,y, x,z or other dimension combinations to get reasonable plots
 }

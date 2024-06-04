@@ -23,10 +23,13 @@
 #' @importFrom rgl plot3d spheres3d selectpoints3d points3d text3d
 #' @importFrom tidyr separate
 #' @importFrom stats dist hclust setNames cutree median
+#' @importFrom dplyr row_number
 #' @examples
-#' # xxx: add example
+#' xxx: add example
 #'
-STL_triangles <- function(file_name){
+STL_triangles <- function(file_name, 
+                          plot_results = FALSE,
+                          verbose = FALSE){
   # dplyr NULLs
   ID <- x <- y <- z <- value <- value.1 <- value.2 <- row_number <- norm.x <- 
     norm.y <- norm.z <- NULL
@@ -35,7 +38,9 @@ STL_triangles <- function(file_name){
   # file_name <- "X:/Pub/2021/_Ruehr_AntVision/data/2_STLs/1_new/AV00001_Camponotus_hyatti_eye1_surface.stl"
   
   # load STL file as lines
-  print(paste0("Importing ", file_name, "..." ))
+  if(verbose == TRUE){
+    print(paste0("Importing ", file_name, "..." ))
+  }
   file_in <- file(file_name, open = "r")
   lines <- readLines(file_in)
   # delete first and last lines
@@ -44,10 +49,15 @@ STL_triangles <- function(file_name){
   
   # convert character vector lines to tibble
   lines_tbl <- as_tibble(lines)
-  print(paste0("Converting to tibble with ", nrow(lines_tbl), " lines ..."))
+  if(verbose == TRUE){
+    print(paste0("Converting to tibble with ", nrow(lines_tbl), " lines ..."))
+  }
   
   # get coordinates of triangle vertices from lines_tbl
-  print("Extracting vertex coordinates of triangles...")
+  if(verbose == TRUE){
+    print("Extracting vertex coordinates of triangles...")
+  }
+  
   vertex_coords_triangles <- lines_tbl %>% 
     filter(grepl("vertex", value)) %>% 
     separate(value, into = c("value", "x", "y", "z"), sep = " ") %>% 
@@ -61,7 +71,9 @@ STL_triangles <- function(file_name){
   }
   
   # get vertex coordinates of triangle centers
-  print(paste0("Extracting coordinates of triangle centers..."))
+  if(verbose == TRUE){
+    print(paste0("Extracting coordinates of triangle centers..."))
+  }
   vertex_coords_triangle_centers <- vertex_coords_triangles %>% 
     mutate("ID" = IDs) %>% 
     group_by(ID) %>% 
@@ -73,7 +85,10 @@ STL_triangles <- function(file_name){
     arrange(ID) 
   
   # get normals of triangles
-  print(paste0("Extracting triangle normals..."))
+  if(verbose == TRUE){
+    print(paste0("Extracting triangle normals..."))
+  }
+  
   normals <-  lines_tbl %>% 
     filter(grepl("facet normal", value)) %>% 
     separate(value, into = c("value.1", "value.2", "norm.x", "norm.y", "norm.z"), sep = " ") %>% 
@@ -86,14 +101,18 @@ STL_triangles <- function(file_name){
   tri_centers_normals <- left_join(vertex_coords_triangle_centers, normals, by = "ID") %>% 
     ungroup()
   
-  print(paste0(" Found ", nrow(tri_centers_normals), " triangle coordinates."))
+  if(verbose == TRUE){
+    print(paste0(" Found ", nrow(tri_centers_normals), " triangle coordinates."))
+  }
   
-  # # plot triangle center coordinates
-  plot3d(tri_centers_normals %>%
-           select(x,y,z), 
-         aspect = "iso", 
-         col = "blue")
-
+  if(plot_results == TRUE){
+    # # plot triangle center coordinates
+    plot3d(tri_centers_normals %>%
+             select(x,y,z), 
+           aspect = "iso", 
+           col = "blue")
+  }
+  
   # # draw vectors
   # vec.mult <- 0.1
   # for(curr_facet in round(seq(1, nrow(tri_centers_normals), length.out = 150))){ # nrow(curr_facets)
@@ -114,83 +133,8 @@ STL_triangles <- function(file_name){
   #           z = c(curr_facet_coordinates %>% pull(z), curr_facet_coordinates %>% pull(z) + norm.z*vec.mult),
   #           col = "red")
   # }
-  
-  print("done!")
+  if(verbose == TRUE){
+    print("done!")
+  }
   return(tri_centers_normals)
-}
-
-
-
-
-
-
-
-
-#' Import STL vertices as Tibble
-#'
-#' Imports vertex coordinates of STL file as tibble.
-#'
-#' @param file_name File name of STL to import.
-#'
-#' @return A tibble containing vertex coordinates of STL file.
-#'
-#' @export
-#' @importFrom doParallel registerDoParallel stopImplicitCluster
-#' @importFrom dplyr filter pull select mutate arrange slice group_by ungroup left_join summarize distinct
-#' first lead lag case_when bind_cols tibble as_tibble desc progress_estimated bind_rows all_of rename n 
-#' mutate_all
-#' @importFrom foreach foreach '%dopar%'
-#' @importFrom magrittr '%>%'
-#' @importFrom geometry dot
-#' @importFrom graphics locator par abline hist
-#' @importFrom grDevices grey.colors
-#' @importFrom readr write_csv
-#' @importFrom reshape2 melt
-#' @importFrom rgl plot3d spheres3d selectpoints3d points3d text3d
-#' @importFrom tidyr separate
-#' @importFrom stats dist hclust setNames cutree median
-#' @examples
-#' # xxx: add example
-#'
-#'
-STL_vertices <- function(file_name){
-  
-  # dplyr NULLs
-  ID <- x <- y <- z <- value <- value.1 <- value.2 <- row_number <- norm.x <-
-    norm.y <- norm.z <- NULL
-  
-  # # testing:
-  # file_name <- "X:/Pub/2021/_Ruehr_AntVision/data/2_STLs/1_new/AV00001_Camponotus_hyatti_eye1_surface.stl"
-  
-  # load STL file as lines
-  print(paste0("Importing ", file_name, "..." ))
-  file_in <- file(file_name, open = "r")
-  lines <- readLines(file_in)
-  # delete first and last lines
-  lines <- lines[-c(1, length(lines))]
-  close(file_in)
-  
-  # convert character vector lines to tibble
-  lines_tbl <- as_tibble(lines)
-  print(paste0("Converting to tibble with ", nrow(lines_tbl), " lines ..."))
-  
-  # get coordinates of triangle vertices from lines_tbl
-  print("Extracting vertex coordinates of triangles")
-  vertex_coords_triangles <- lines_tbl %>%
-    filter(grepl("vertex", value)) %>%
-    separate(value, into = c("value", "x", "y", "z"), sep = " ") %>%
-    select(-value) %>%
-    distinct() %>%
-    mutate_all(as.numeric)
-  
-  print(paste0(" Found ", nrow(vertex_coords_triangles), " vertices."))
-  
-  # # plot triangle center coordinates
-  plot3d(vertex_coords_triangles %>%
-           select(x,y,z),
-         aspect = "iso",
-         col = "blue")
-  
-  print("done!")
-  return(vertex_coords_triangles)
 }

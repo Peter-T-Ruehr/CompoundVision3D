@@ -2,7 +2,7 @@
 #'
 #' Very roughly find clusters around facet peaks.
 #'
-#'# find good threshold - choose x,y, x,z or other dimension combinations to get reasonable plots
+#' find good threshold - choose x,y, x,z or other dimension combinations to get reasonable plots
 #' @export
 find_threshold <- function(df = local_heights,
                            column1 = "x",
@@ -69,7 +69,7 @@ find_threshold <- function(df = local_heights,
 #'
 #' @export
 #' @examples
-#' # xxx: add example
+#' xxx: add example
 #' 
 find_facets_rough <- function(df,
                               local_height_threshold = 2.5,
@@ -175,7 +175,7 @@ find_facets_rough <- function(df,
 #'
 #' @export
 #' @examples
-#' # xxx: add example
+#' xxx: add example
 #' 
 find_facets_fine <- function(df,
                              cols_to_use,

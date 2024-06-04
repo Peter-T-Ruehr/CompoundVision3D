@@ -23,6 +23,6 @@ Rotates 3D point cloud according to one defined vector so that this vector
 is aligned to one of the global coordinate system axes.
 }
 \examples{
-# xxx: add example and change above descsriptionand parameters
+xxx: add example and change above descsriptionand parameters
 
 }

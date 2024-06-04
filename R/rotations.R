@@ -12,7 +12,7 @@
 #'
 #' @export
 #' @examples
-#' # xxx: add example and change above descsriptionand parameters
+#' xxx: add example and change above descsriptionand parameters
 #'
 align_to_global_axis = function(df,
                                 line_points_y_ind,
@@ -440,7 +440,7 @@ align_to_global_axis = function(df,
 #'
 #' @export
 #' @examples
-#' # xxx: add example
+#' xxx: add example
 #'
 angle_to_global_axis <- function(vector, global_axis) {
   # # testing
@@ -478,7 +478,7 @@ angle_to_global_axis <- function(vector, global_axis) {
 #'
 #' @export
 #' @examples
-#' # xxx: add example
+#' xxx: add example
 #'
 rotate_point_cloud <- function(point_cloud, angles) {
   # # testing

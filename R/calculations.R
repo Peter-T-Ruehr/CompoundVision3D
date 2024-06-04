@@ -12,7 +12,7 @@
 #'
 #' @export
 #' @examples
-#' # xxx: add example and change above descsriptionand parameters
+#' xxx: add example and change above descsriptionand parameters
 #'
 # calculate angle between 2 vectors (types: d = degrees, r = radians, both = c(regrees, radians))
 calc_delta.phi <- function(curr.lens, curr.partner, type){
@@ -62,7 +62,7 @@ calc_delta.phi <- function(curr.lens, curr.partner, type){
 #'
 #' @export
 #' @examples
-#' # xxx: add example and change above descsriptionand parameters
+#' xxx: add example and change above descsriptionand parameters
 #'
 generate_random_line <- function() {
   point <- runif(3, min = -10, max = 10)
@@ -85,7 +85,7 @@ generate_random_line <- function() {
 #'
 #' @export
 #' @examples
-#' # xxx: add example and change above descsriptionand parameters
+#' xxx: add example and change above descsriptionand parameters
 #'
 closest_point_to_lines <- function(lines) {
   require(MASS)

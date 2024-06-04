@@ -31,6 +31,6 @@ peak.
 Find facet peaks.
 }
 \examples{
-# xxx: add example
+xxx: add example
 
 }

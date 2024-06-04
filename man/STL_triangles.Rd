@@ -4,7 +4,7 @@
 \alias{STL_triangles}
 \title{Import STL triangles (facets) as Tibble}
 \usage{
-STL_triangles(file_name)
+STL_triangles(file_name, plot_results = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{file_name}{File name of STL to import.}
@@ -18,6 +18,6 @@ the word 'triangle' here to refer to the facets of an STL mesh to avoid
 confusion with the facets of compound eyes.
 }
 \examples{
-# xxx: add example
+xxx: add example
 
 }
