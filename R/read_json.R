@@ -2,7 +2,7 @@
 #'
 #' Reads a *.mrk.json file containing landmarks created in 3D slicer.
 #'
-#' @param LM_file_location A string containing the full path of the json file.
+#' @param file A string containing the full path of the json file.
 #' @return Returns a tibble with the landmark data in columns 
 #' `LM,x, y, z`.
 #'
@@ -10,11 +10,11 @@
 #' @examples
 #' # xxx: add example
 #'
-read_3DSlicer_landmarks <- function(LM_file_location){
+read_3DSlicer_landmarks <- function(file){
   # # testing
-  # LM_file_location <- file.path(LM_folder, "landmarks.mrk.json")
+  # file <- file.path(LM_folder, "landmarks.mrk.json")
   
-  LM_file <- fromJSON(file = LM_file_location)
+  LM_file <- fromJSON(file = file)
   
   LM_file_df <- tibble(var = names(unlist(LM_file$markups[[1]]$controlPoints)),
                        val = unlist(LM_file$markups[[1]]$controlPoints))

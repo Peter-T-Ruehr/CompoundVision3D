@@ -4,10 +4,10 @@
 \alias{read_3DSlicer_landmarks}
 \title{Read json File with Landmark Data from 3D Slicer}
 \usage{
-read_3DSlicer_landmarks(LM_file_location)
+read_3DSlicer_landmarks(file)
 }
 \arguments{
-\item{LM_file_location}{A string containing the full path of the json file.}
+\item{file}{A string containing the full path of the json file.}
 }
 \value{
 Returns a tibble with the landmark data in columns

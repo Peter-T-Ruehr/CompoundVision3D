@@ -5,7 +5,7 @@
 \alias{local_heights}
 \title{Local Heights}
 \format{
-A data frame with 16,847 rows and 8 variables:
+A data frame with 22,464 rows and 8 variables:
 \describe{
 \item{ID}{A numeric vector of consequtive vertex IDs}
 \item{x}{A numeric vector of vertex x coordinates}

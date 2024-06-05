@@ -5,7 +5,7 @@
 \alias{tri_centers_normals}
 \title{Triangle Centers and Normals}
 \format{
-A data frame with 16,847 rows and 7 variables:
+A data frame with 22,464 rows and 7 variables:
 \describe{
 \item{ID}{A numeric vector of consequtive vertex IDs}
 \item{x}{A numeric vector of vertex x coordinates}

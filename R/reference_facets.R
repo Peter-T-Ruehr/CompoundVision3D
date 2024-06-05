@@ -5,7 +5,7 @@
 #'
 #' @param coordinates A dataframe containing at least the columns `x,y,z`.
 #' @param reference_coordinates A dataframe containing at least the columns `x,y,z`.
-#' @param search_daimeter A numeric value to define the size of the box that is 
+#' @param search_diameter A numeric value to define the size of the box that is 
 #' used around each coordinate to find its closest reference coordinate. 
 #' Defailt: `1`.
 #' @return Returns a tibble with points in `reference_coordinates` that are 
@@ -18,11 +18,11 @@
 #'
 reference_point_clouds <- function(coordinates,
                              reference_coordinates,
-                             search_daimeter = 10,
+                             search_diameter = 10,
                              cores = 1){
   # # testing
-  # coordinates <- facet_positions
-  # reference_coordinates <- local_heights
+  # coordinates = facet_positions
+  # reference_coordinates = local_heights
   # cores = 12
   
   # load multi-core package
@@ -42,12 +42,12 @@ reference_point_clouds <- function(coordinates,
                                    
                                    # get window around current poin in reference_coordinates
                                    curr_window <- reference_coordinates %>% 
-                                     filter(x >= curr_x - search_daimeter,
-                                            x <= curr_x + search_daimeter,
-                                            y >= curr_y - search_daimeter,
-                                            y <= curr_y + search_daimeter,
-                                            z >= curr_z - search_daimeter,
-                                            z <= curr_z + search_daimeter)
+                                     filter(x >= curr_x - search_diameter,
+                                            x <= curr_x + search_diameter,
+                                            y >= curr_y - search_diameter,
+                                            y <= curr_y + search_diameter,
+                                            z >= curr_z - search_diameter,
+                                            z <= curr_z + search_diameter)
                                    
                                    # add curr. facet position to window with ID = 0
                                    curr_window <- curr_window %>% 

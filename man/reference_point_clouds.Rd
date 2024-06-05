@@ -7,7 +7,7 @@
 reference_point_clouds(
   coordinates,
   reference_coordinates,
-  search_daimeter = 10,
+  search_diameter = 10,
   cores = 1
 )
 }
@@ -16,7 +16,7 @@ reference_point_clouds(
 
 \item{reference_coordinates}{A dataframe containing at least the columns \verb{x,y,z}.}
 
-\item{search_daimeter}{A numeric value to define the size of the box that is
+\item{search_diameter}{A numeric value to define the size of the box that is
 used around each coordinate to find its closest reference coordinate.
 Defailt: \code{1}.}
 }
