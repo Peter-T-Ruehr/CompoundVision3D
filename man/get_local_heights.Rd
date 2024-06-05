@@ -4,7 +4,13 @@
 \alias{get_local_heights}
 \title{Find Local Vertex Heights}
 \usage{
-get_local_heights(df, search_diam, cores = 1, log_scale = TRUE)
+get_local_heights(
+  df,
+  search_diam,
+  cores = 1,
+  log_scale = TRUE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{df}{A tibble containing triangle center coordinates in columns \verb{x, y, z}.}

@@ -1,5 +1,5 @@
 ---
-title: "compoundvision3D"
+title: "CompoundVision3D Vignette"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{compoundvision3D}
@@ -18,7 +18,7 @@ vignette: >
 
 ## Introduction
 This documents illustrates the workflow of the CompoundVision3D package 
-using a dataset of *Drosophila melanogaster* published in
+of Rühr et al. using a dataset of *Drosophila melanogaster* published in
 
 Schoborg, T. A., Smith, S. L., Smith, L. N., Morris, H. D., & Rusan, N. M. (**2019**). Micro-computed tomography as a platform for exploring *Drosophila* development. *Development* **146**(23), dev176685. DOI: [10.1242/dev.176685](https://doi.org/10.1242/dev.176685).
   
@@ -27,6 +27,9 @@ Schoborg, T. A., Smith, S. L., Smith, L. N., Morris, H. D., & Rusan, N. M. (**20
 ```{r setup1, warning=FALSE, message=FALSE}
 library(compoundvision3D)
 ```
+<!-- # ```{r setup_set_wd, include=FALSE, warning=FALSE, message=FALSE} -->
+<!-- # setwd("X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D/vignettes") -->
+<!-- # ``` -->
 
 ### Load all other packages needed:
 ```{r setup2, warning=FALSE, message=FALSE}
@@ -47,7 +50,7 @@ dir.create(target_directory)
 ```
 
 ### Convert STL with compound eye surface to a tibble
-```{r import_STL, warning=FALSE, message=FALSE}
+```{r import_STL, evaluate=FALSE, warning=FALSE, message=FALSE}
 # define file list with STL files
 file_list <- list.files(source_directory, pattern = ".stl", full.names = TRUE)
 curr_filename <- file_list[1]
@@ -57,8 +60,12 @@ tri_centers_normals <- STL_triangles(file_name = curr_filename,
                                      plot_results = FALSE,
                                      verbose = FALSE)
 ```
+The `tri_centers_normals` tibble of this example on *Drosophila* can also be loaded with
+```{r load_tri_centers_normals, eval=TRUE, include=TRUE, warning=FALSE, message=FALSE}
+tri_centers_normals <- compoundvision3D::tri_centers_normals
+``` 
 
-### Convert STL with compound eye surface to a tibble
+### Plot imported eye data
 ```{r plot_imported_eye, eval=FALSE, warning=FALSE, message=FALSE}
 # plot imported eye data
 plot3d(tri_centers_normals %>% 
@@ -90,16 +97,6 @@ for(curr_facet in round(seq(1, nrow(tri_centers_normals), length.out = 50))){ # 
 ![](./imgs/imported_eye_3D_plot.png){width=6in}
 
 
-### Export converted STL data
-```{r export_converted_STL_data, warning=FALSE, message=FALSE}
-# define tri_centers_normals file name
-tri_centers_normals_file <- gsub("_surface.stl", "_tri_centers_normals.csv", basename(curr_filename))
-
-# write csv with triangle centers and normals
-write_csv(tri_centers_normals, file.path(target_directory, tri_centers_normals_file))
-```
-
-
 ### Manually define search diameter
 ```{r define_search_diameter, eval=FALSE, warning=FALSE, message=FALSE}
 # manually select 2 neighboring facets to define search diameter
@@ -114,8 +111,65 @@ Finished rotation? ("y" = yes; "n" = no")
 [1] "done!"
 ``` 
 ![](./imgs/search_diameter_definition.png){width=6in}
-
 ```{r set_search_diameter, include=FALSE, warning=FALSE, message=FALSE}
 # manually select 2 neighboring facets to define search diameter
 curr_search_diam <- 38.158
 ```
+
+### Find Local Heights: Calculate distances of vertices from local plane
+```{r find_local_heights, eval=FALSE, warning=FALSE, message=FALSE}
+# This is a multi-threaded but may still take a while. Define number of cores to suit your system (cores = n).
+local_heights <- get_local_heights(df = tri_centers_normals,
+                                   search_diam = curr_search_diam,
+                                   cores = 12)
+``` 
+The `local_heights` tibble of this example on *Drosophila* can also be loaded with
+```{r load_local_heights, eval=TRUE, include=TRUE, warning=FALSE, message=FALSE}
+local_heights <- compoundvision3D::local_heights
+``` 
+
+### Plot distribution of local height values
+```{r plot_local_heights_2D, eval=TRUE, warning=FALSE, message=FALSE, fig.width=6}
+# calculate height colours for raw, filtered and log-transformed local heights
+par(mfrow=c(1,3))
+local_height_cols_raw <- get_height_colors(heights = local_heights$local_height)
+plot(local_heights$local_height, col = local_height_cols_raw, pch=16, cex=.2,
+     main = "raw")
+
+local_height_cols_filtered <- get_height_colors(heights = local_heights$local_height,
+                                                lower_quantile = 0.1,
+                                                upper_quantile = 0.9)
+plot(local_heights$local_height, col = local_height_cols_filtered, pch=16, cex=.2,
+     main = "quantile")
+
+local_height_cols_filtered_log <- get_height_colors(heights = 10^local_heights$local_height,
+                                                    lower_quantile = 0.5,
+                                                    upper_quantile = 0.9)
+plot(local_heights$local_height, col = local_height_cols_filtered_log, pch=16, cex=.2,
+     main = "quantile & log")
+par(mfrow=c(1,1))
+```
+
+### Add colors according to local heights
+```{r plot_add_local_height_cols, eval=TRUE, warning=FALSE, message=FALSE}
+# add colour column for raw values
+local_heights$local_height_col <- local_height_cols_raw
+
+# add colour and value column for log values
+local_heights$local_height_log <- 10^local_heights$local_height
+local_heights$local_height_col_log <- local_height_cols_filtered_log
+```
+
+
+### Plot local heights 3D
+```{r plot_local_heights_3D, eval=FALSE, warning=FALSE, message=FALSE}
+# plot eye in 'SEM colors'
+plot3d(local_heights %>% 
+         select(x,y,z), 
+       col = local_heights %>% 
+         pull(local_height_col_log), 
+       aspect = "iso",
+       size=5)
+```
+![](./imgs/SEM_colors.png){width=6in}
+
