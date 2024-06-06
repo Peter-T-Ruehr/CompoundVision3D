@@ -12,15 +12,30 @@ A data frame with 735 rows and 4 variables:
 \item{y}{A numeric vector of facet y coordinates}
 \item{z}{A numeric vector of facet z coordinates}
 }
+
+A data frame with 735 rows and 4 variables:
+\describe{
+\item{ID}{A numeric vector of consequtive facet IDs}
+\item{x}{A numeric vector of facet x coordinates}
+\item{y}{A numeric vector of facet y coordinates}
+\item{z}{A numeric vector of facet z coordinates}
+}
 }
 \source{
+Generated using the software Blender and the Blender Python
+script \verb{4_export_corrected_facets.py}.
+
 Generated using the software Blender and the Blender Python
 script \verb{4_export_corrected_facets.py}.
 }
 \usage{
 facet_positions
+
+facet_positions
 }
 \description{
+This is an example tibble containing 735 facet coordinates.
+
 This is an example tibble containing 735 facet coordinates.
 }
 \keyword{datasets}

@@ -82,3 +82,30 @@
 #' }
 #' @source Generated using \code{compoundvision3D::reference_point_clouds()}.
 "facet_positions_new"
+
+#' Facet Positions
+#'
+#' This is an example tibble containing 735 facet coordinates.
+#'
+#' @format A data frame with 735 rows and 4 variables:
+#' \describe{
+#'   \item{ID}{A numeric vector of consequtive facet IDs}
+#'   \item{x}{A numeric vector of facet x coordinates}
+#'   \item{y}{A numeric vector of facet y coordinates}
+#'   \item{z}{A numeric vector of facet z coordinates}
+#' }
+#' @source Generated using the software Blender and the Blender Python
+#'  script `4_export_corrected_facets.py`.
+"facet_positions"
+
+#' Data of cropping log file
+#'
+#' This is an example tibble of a \code{crop.log} file.
+#'
+#' @format A data frame with 17 rows and 2 variables:
+#' \describe{
+#'   \item{ID}{A character vector of variable names}
+#'   \item{x}{A character vector of variable values}
+#' }
+#' @source Generated using \code{crop_scan.ijm} script of compoundvision3D.
+"crop_log_data"
