@@ -4,7 +4,7 @@ output:
   html_vignette: default
   # pdf_document: default
 vignette: >
-  %\VignetteIndexEntry{compoundvision3D}
+  %\VignetteIndexEntry{CompoundVision3D}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -27,9 +27,9 @@ of Rühr et al. using a dataset of *Drosophila melanogaster* published in
 Schoborg, T. A., Smith, S. L., Smith, L. N., Morris, H. D., & Rusan, N. M. (**2019**). Micro-computed tomography as a platform for exploring *Drosophila* development. *Development* **146**(23), dev176685. DOI: [10.1242/dev.176685](https://doi.org/10.1242/dev.176685).
   
 ## Code
-### Load compoundvision3D package:
+### Load CompoundVision3D package:
 ```{r setup1, warning=FALSE, message=FALSE}
-library(compoundvision3D)
+library(CompoundVision3D)
 ```
 <!-- # ```{r setup_set_wd, include=FALSE, warning=FALSE, message=FALSE} -->
 <!-- # setwd("X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D/vignettes") -->
@@ -68,7 +68,7 @@ tri_centers_normals <- STL_triangles(file_name = curr_filename,
 ```
 The `tri_centers_normals` tibble of this example on *Drosophila* can also be loaded with
 ```{r load_tri_centers_normals, eval=TRUE, include=TRUE, warning=FALSE, message=FALSE}
-tri_centers_normals <- compoundvision3D::tri_centers_normals
+tri_centers_normals <- CompoundVision3D::tri_centers_normals
 ``` 
 
 ### Plot imported eye data
@@ -103,7 +103,7 @@ for(curr_facet in round(seq(1, nrow(tri_centers_normals), length.out = 50))){ # 
           col = "red")
 }
 ```
-![](./imgs/imported_eye_3D_plot.png){width=6in}
+![](./imgs/imported_eye_3D_plot.png){width=4in}
 
 
 ### Manually define search diameter
@@ -119,7 +119,7 @@ Finished rotation? ("y" = yes; "n" = no")
 [1] "Search diameter: 38.158"
 [1] "done!"
 ``` 
-![](./imgs/search_diameter_definition.png){width=6in}
+![](./imgs/search_diameter_definition.png){width=4in}
 ```{r set_search_diameter, include=FALSE, warning=FALSE, message=FALSE}
 # manually select 2 neighboring facets to define search diameter
 curr_search_diam <- 38.158
@@ -141,7 +141,7 @@ Time difference of 19.27364 secs
 ``` 
 The `local_heights` tibble of this example on *Drosophila* can also be loaded with
 ```{r load_local_heights, eval=TRUE, include=TRUE, warning=FALSE, message=FALSE}
-local_heights <- compoundvision3D::local_heights
+local_heights <- CompoundVision3D::local_heights
 ``` 
 
 ### Plot distribution of local height values
@@ -228,7 +228,7 @@ find_threshold(df = local_heights,
                plot_file = "./Drosophila_eye_thresholds.pdf")
 ```
 
-![](./imgs/thresholds.png){width=6in}
+![](./imgs/thresholds.png){width=4in}
 
 ### Choose a good threshold from plot and filter local heights according to it
 ```{r define_threshold, eval=TRUE, warning=FALSE, message=FALSE}
@@ -258,7 +258,7 @@ spheres3d(rough_clusters,
           radius = curr_search_diam/20)
 ```
 
-![](./imgs/SEM_colors_thresholds.png){width=6in}
+![](./imgs/SEM_colors_thresholds.png){width=4in}
 
 ### Find facets positions.
 This needs quite a bit of user attention. 
@@ -290,9 +290,9 @@ select cut-off point on y axis.
 Time difference of 20.89946 secs
 Plotting 'SEM'-coloured eye in RGL 3D window. Check it out to get overview.
 ```
-![](./imgs/facets_auto_process.png){width=6in}
+![](./imgs/facets_auto_process.png){width=4in}
 
-<!-- ![](./imgs/facets_auto.png){width=6in} -->
+<!-- ![](./imgs/facets_auto.png){width=4in} -->
 
 ### Plot final result of automatic facet finding
 ```{r plot_faccets_auto_final, eval=FALSE, warning=FALSE, message=FALSE}
@@ -312,7 +312,7 @@ spheres3d(facet_positions_auto %>%
           col="red", radius=curr_facet_size, alpha = 1)
 ```
 
-![](./imgs/facets_auto_final.png){width=6in}
+![](./imgs/facets_auto_final.png){width=4in}
 
 ### Manual facet position correction in Blender
 XXX: describe the process with pics
@@ -326,7 +326,7 @@ facet_positions <- read_csv(curr_facets_positions_file,
 
 The `facet_positions` tibble of this example on *Drosophila* can also be loaded with
 ```{r read_facet_positions, eval=TRUE, include=TRUE, warning=FALSE, message=FALSE}
-facet_positions <- compoundvision3D::facet_positions
+facet_positions <- CompoundVision3D::facet_positions
 
 # show facet positions
 print(facet_positions)
@@ -347,7 +347,7 @@ facet_positions_new <- reference_point_clouds(coordinates = facet_positions,
 
 The `facet_positions_new` tibble of this example on *Drosophila* can also be loaded with
 ```{r load_referenced_facets, eval=TRUE, include=TRUE, warning=FALSE, message=FALSE}
-facet_positions_new <- compoundvision3D::facet_positions_new
+facet_positions_new <- CompoundVision3D::facet_positions_new
 
 # show facet positions
 print(facet_positions_new)
@@ -370,10 +370,10 @@ spheres3d(facet_positions_new %>%
           col="red", radius=5, alpha = 1)
 ```
 
-![](./imgs/facet_positions_corrected.png){width=6in}
+![](./imgs/facet_positions_corrected.png){width=4in}
 
 ### Import landmarks
-Now we will import landmarks created in 3D Slicer to use for the rotation of the eye. You may import any landmark file at you your own convenience. The resulting tibble should have the columns `LM`, `x`, `y`, and `z` though. 
+Now we will import landmarks created in 3D Slicer to use for the rotation of the eye. You may use any landmark data at your own convenience. The resulting tibble should have the columns `LM`, `x`, `y`, and `z` though. 
 
 We have chosen landmarks to help rotating the eye in a standardized way and are aware of the fact that some of them cannot be considered true (homologous) landmarks, such as `innermost_eye_L` etc.
 
@@ -386,7 +386,7 @@ LMs_df <- read_3DSlicer_landmarks(file = LM_file_location)
 
 The `LMs_df` tibble of this example on *Drosophila* can also be loaded with
 ```{r read_landmarks, eval=TRUE, include=TRUE, warning=FALSE, message=FALSE}
-LMs_df <- compoundvision3D::LMs_df
+LMs_df <- CompoundVision3D::LMs_df
 
 # show landmarks
 print(LMs_df)
@@ -400,7 +400,41 @@ spheres3d(LMs_df %>%
             select(x, y, z), 
           col="blue", radius=20, alpha = 1)
 
+# plot the LM coordinates
+text3d(LMs_df %>% 
+            select(x, y, z), 
+       texts = LMs_df %>% 
+         pull(LM),
+          col="blue", radius=20, alpha = 1)
+
 ```
 
-![](./imgs/facet_positions_corrected_w_LMs.png){width=6in}
+![](./imgs/facet_positions_corrected_w_LMs.png){width=4in}
 
+### Load log file from cropping
+Now we will load the log file that was created during the cropping process to get the pixel sizes of the head ROI and the eye ROI. If you did not use the cropping script, you may skip loading a crop log file and instead enter the respective pixel sizes manually. If the head and the eye ROI have the same pixel size, you will still need to assign this value to both pixel sizes, the one of the head ROI and the one of the eye ROI.
+
+```{r import_crop_log_file, eval=FALSE, warning=FALSE, message=FALSE}
+# define log file with full path
+crop_log_file_location <- "./Drosophila/crop_log/Drosophila_crop.log")[1]
+
+# load crop log file
+crop_log_data <- read_delim(crop_log_file_location,
+                            delim = " = ",
+                            col_names = FALSE,
+                            show_col_types = FALSE) %>% 
+  rename(var = X1,
+         val = X2)
+```
+
+The `crop_log_data` tibble of this example on *Drosophila* can also be loaded with
+```{r read_crop_log_file, eval=TRUE, include=TRUE, warning=FALSE, message=FALSE}
+crop_log_data <- CompoundVision3D::crop_log_data
+
+# show landmarks
+print(crop_log_data)
+``` 
+
+
+### Extract pixel sizes from different ROIs
+#### Head
