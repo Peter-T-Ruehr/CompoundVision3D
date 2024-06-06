@@ -1,6 +1,6 @@
 # compound_vision_3D
 This repository contains
-* R pacckage to automatically extract 3D information (number of facets, facet positions, inter-facet angles, sensitivity and acuity) of compound eyes.
+* R package CompoundVision3D to automatically extract 3D information (number of facets, facet positions, inter-facet angles, sensitivity and acuity) of compound eyes.
 
 ## Additional unpublished but existing code:
 ### (This is part of an analysis manuscript - it is not yet decided which code will be part of the package)
@@ -18,7 +18,7 @@ This repository contains
   * compare these values in an phylogenetic comparative framework
   * analyse the trade-off between acuity and sensitivity across species
 
-This is an alpha-version and still under development.
+This is package is still under development.
 
 ## Example output
 ### Direction and acuity
@@ -40,3 +40,5 @@ species 1
 ![species 1-11](https://live.staticflickr.com/65535/52077614450_71d1ecd3bc_o.png)
 
 species 1-11
+
+## Please report issues and leave comments on the package's [Issues](https://github.com/Peter-T-Ruehr/CompoundVision3D/issues) page.
