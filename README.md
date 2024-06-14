@@ -41,4 +41,5 @@ species 1
 
 species 1-11
 
-## Please report issues and leave comments on the package's [Issues](https://github.com/Peter-T-Ruehr/CompoundVision3D/issues) page.
+## Issues
+Please report issues and leave comments on the package's [Issues](https://github.com/Peter-T-Ruehr/CompoundVision3D/issues) page.

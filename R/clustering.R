@@ -266,7 +266,7 @@ find_facets_fine <- function(df,
   par(mfrow=c(1,1))
   
   if(is.null(h_final)){
-    message("select cut-off point on y axis.")
+    message("Select cut-off point on x-axis.")
     h_final <- locator(type = "n", n=1)
     print(paste0("Final cut-off chosen: ", h_final$x[length(h_final$x)]))
   } else if(is.numeric(h_final)){
