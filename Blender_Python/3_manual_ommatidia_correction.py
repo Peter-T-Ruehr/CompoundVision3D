@@ -34,8 +34,8 @@ def hex2col(hex, normalize=False, precision=None):
 ## remove all
 #bpy.ops.object.delete(use_global=False, confirm=False)
 
-# file = csv.reader(open('X:/Pub/2021/_Ruehr_AntVision/data/3_triangle_centers_and_normals/pre_correction/AV00022_Crematogaster_pimicola_DICOM_eye2_surface.csv', newline=''), delimiter=',')
-file = csv.reader(open(p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/6_fine_clusters/', 'CV0011_Tricholepidion_gertschi_Blanke_4025_eye2_fine_clusters.csv'), newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_fine_clusters
+file = csv.reader(open(p.join('X:/Pub/2021/_Ruehr_AntVision/data/6_fine_clusters/', 'AV00002_Dorymyrmex_insanus_eye2_fine_clusters.csv'), newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_fine_clusters
+# file = csv.reader(open(p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/6_fine_clusters/', 'CV0011_Tricholepidion_gertschi_Blanke_4025_eye2_fine_clusters.csv'), newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_fine_clusters
 
 print(file)
 
