@@ -1,2 +1,0 @@
-makeRectangle(156, 99, 570, 627);
-run("Crop");
