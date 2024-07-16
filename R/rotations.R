@@ -168,7 +168,7 @@ align_to_global_axis = function(df,
   # plot3d(df_xyz_aligned_y %>%
   #          select(x,y,z))
   
-  # Rotate the point cloud: forst facet positions, then facet normals
+  # Rotate the point cloud: first facet positions, then facet normals
   df_xyz_aligned_yx <- rotate_point_cloud(df_xyz_aligned_y, 
                                           angles)
   
