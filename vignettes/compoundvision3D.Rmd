@@ -1,24 +1,28 @@
 ---
-title: |
-<center> ![](../man/figures/logo.png){width=1.8in} </center> 
-  <center> Vignette </center>
-  author: "Peter T. Rühr"
+title: "dsad"
 date: "`r Sys.Date()`"
-output:
-  rmarkdown::html_vignette: # default
-    toc: true
-    toc_depth: 5
-    # toc_float: true
-    # theme: cosmo
-  # pdf_document:
-  #   toc: true
-  #   toc_depth: 5
-  #   extra_dependencies: ["float"]
-vignette: >
-%\VignetteIndexEntry{CompoundVision3D}
-%\VignetteEngine{knitr::rmarkdown}
-%\VignetteEncoding{UTF-8}
+output: rmarkdown::html_vignette    
 ---
+
+<!-- | -->
+<!-- <center> ![](../man/figures/logo.png){width=1.8in} </center> -->
+<!--   <center> Vignette </center> -->
+<!-- author: "Peter T. Rühr" -->
+<!-- date: "`r Sys.Date()`" -->
+<!-- output: -->
+<!--   rmarkdown::html_vignette: # default -->
+    <!-- toc: true -->
+    <!-- toc_depth: 5 -->
+<!--     # toc_float: true -->
+<!--     # theme: cosmo -->
+<!--   # pdf_document: -->
+<!--   #   toc: true -->
+<!--   #   toc_depth: 5 -->
+<!--   #   extra_dependencies: ["float"] -->
+<!-- vignette: > -->
+<!-- %\VignetteIndexEntry{CompoundVision3D} -->
+<!-- %\VignetteEngine{knitr::rmarkdown} -->
+<!-- %\VignetteEncoding{UTF-8} -->
 
 ```{r doc_setup, include=FALSE}
 knitr::opts_chunk$set(fig.align = 'center', fig.pos = "H", out.extra = "")
@@ -584,7 +588,7 @@ knitr::include_graphics("./imgs/facet_positions_translated_w_LMs.png")
 
 ##### Combine all data for further analyses
 
-```{r plot_translated_coordinates, eval=TRUE, warning=FALSE, message=FALSE}
+```{r combine_facets, eval=TRUE, warning=FALSE, message=FALSE}
 LMs_facets_combined <- rbind(facet_positions_translated %>% 
                                mutate(ID = as.character(ID)), 
                              LMs_df %>% 
