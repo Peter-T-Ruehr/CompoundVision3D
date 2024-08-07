@@ -1,7 +1,6 @@
 import bpy, csv, math
 from math import pi
 from os import path as p
-from os import path as p
 bpy.context.scene.unit_settings.length_unit = 'CENTIMETERS'
 import re
 
@@ -9,12 +8,28 @@ import re
 #     1 = import STL file of current eye to manually extract its surface
 #     2 = add modifiers before manual export of the extracted surface of current eye as ASCII STL
 #     3 = import facet position results of R algorithm
-#     4 = export facet posiotions after manual check and corrections
+#     4 = export facet posiotions after manual check and corrections; define the path you want to export in next line.
+#     0 (or any other number than 1-4 or any string) = prints error message
 
 step = 0
+export_to = 'data'   
+                        # Choose 'data' to follow the folder convention of the CompoundVision3D workflow. This will save the data in ./data/7_facet_positions/. My default.
+                        # If choosing 'current', Blender will try to export to the directory of the currently open Blender file.
+                        # Choose 'documents' to save to 'documents/tmp/'. Sometimes, in case you're running the files on a mapped server, it may not be accessible for wirting, so the local documents folder is my go-to. 
+
+
+
+
+
+
 curr_filename_raw = bpy.path.basename(bpy.context.blend_data.filepath)
 curr_filename = re.sub(".blend$", "", curr_filename_raw)
+curr_filepath = bpy.path.abspath("//")
+
+
 print(curr_filename)
+print("in:")
+print(curr_filepath)
 
 
 if step == 1:
@@ -26,6 +41,8 @@ if step == 1:
     bpy.ops.mesh.select_all(action='DESELECT')
     # W + W: Lasso selection
     # bpy.ops.mesh.select_more()
+
+
 
 elif step == 2:
     import bpy
@@ -47,6 +64,7 @@ elif step == 2:
 
     # toggle face orientation (normal) view
     #         - eye outside surface should be blue and inside red
+
 
 elif step == 3:
     radius = 0.0025 # 0.025 0.0025
@@ -124,15 +142,45 @@ elif step == 4:
     # import bpy
     # from os import path as p
     # bpy.context.scene.unit_settings.length_unit = 'CENTIMETERS'
+    
+        
+    def get_documents_path():
+        # Cross-platform way to get the user's home directory
+        home_dir = p.expanduser("~")
+        
+        # Construct the path to the Documents directory based on the platform
+        if os.name == 'nt':  # For Windows
+            documents_dir = p.join(home_dir, 'Documents')
+        elif os.name == 'posix':  # For Unix/Linux/MacOS
+            documents_dir = p.join(home_dir, 'Documents')
+        
+        return documents_dir
+
 
     coordinate_multiplicator = 1000
 
+    if export_to == 'data': # documents current other
+        # Get the parent directories of the current file
+        stl_dir = p.dirname(curr_filepath)
+        eye_dir = p.dirname(stl_dir)
+        AV_dir = p.dirname(eye_dir)
+        pre_STL_dir = p.dirname(AV_dir)
+        data_dir = p.dirname(pre_STL_dir)
+        
+        output_path = p.join(data_dir, '7_facet_positions')
+
+    elif export_to == 'documents': # documents current other
+        documents_path = get_documents_path()
+        output_path = p.join(documents_path,'tmp')
+        print("Saving files to:", output_path)
+        
+    elif export_to == 'current': # documents current other
+        output_path = curr_filepath
+        
     selected_objects = bpy.context.selected_objects
     # output_path = p.join('X:/Pub/2023/Krieger_Hartzsch_Krillauge/data/7_corrected_facet_postitions', "KR0001_Krill01fem4x_TIFF_eye1_surface_facet_positions.csv")
     # output_path = p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/7_fine_clusters_corrected', "CV0003_Zephronia_viridisoma_Micro_CT_8bit_eye2_fine_clusters.csv")
-    output_path = p.join('C:/Users/pruehr.EVOLUTION/Documents/tmp', curr_filename + "_facet_positions.csv")
-
-
+    output_path = p.join(output_path, curr_filename + "_facet_positions.csv")
 
     with open(output_path, "w") as output:
         output.write("ID,x,y,z\n")
