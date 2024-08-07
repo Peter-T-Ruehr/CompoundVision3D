@@ -285,7 +285,7 @@ find_facets_fine <- function(df,
     select(all_of(cols_to_use)) %>% 
     mutate(cluster = clusters.fin) %>% 
     group_by(cluster) %>% 
-    summarize(x = median(!!as.symbol(colnames(df)[cols_to_use[1]])),
+    dplyr::summarize(x = median(!!as.symbol(colnames(df)[cols_to_use[1]])),
               y = median(!!as.symbol(colnames(df)[cols_to_use[2]])),
               z = median(!!as.symbol(colnames(df)[cols_to_use[3]]))) %>% 
     select(-cluster)
