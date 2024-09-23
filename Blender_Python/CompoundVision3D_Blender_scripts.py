@@ -8,7 +8,7 @@ import re
 #     1 = import STL file of current eye to manually extract its surface
 #     2 = add modifiers before manual export of the extracted surface of current eye as ASCII STL
 #     3 = import facet position results of R algorithm
-#     4 = export facet posiotions after manual check and corrections; define the path you want to export in next line.
+#     4 = export facet positions after manual check and corrections; define the path you want to export in next line.
 #     0 (or any other number than 1-4 or any string) = prints error message
 
 step = 0
@@ -95,7 +95,7 @@ elif step == 3:
     ## remove all
     #bpy.ops.object.delete(use_global=False, confirm=False)
 
-    file = csv.reader(open(p.join('X:/Pub/2021/_Ruehr_AntVision/data/6_fine_clusters/', curr_filename + '_fine_clusters.csv'), newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_fine_clusters
+    file = csv.reader(open(p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/6_fine_clusters/', curr_filename + '_fine_clusters.csv'), newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_fine_clusters
     # file = csv.reader(open(p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/6_fine_clusters/', 'CV0011_Tricholepidion_gertschi_Blanke_4025_eye2_fine_clusters.csv'), newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_fine_clusters
 
     print(file)
