@@ -12,12 +12,20 @@ import re
 #     0 (or any other number than 1-4 or any string) = prints error message
 
 step = 0
+
+
+
+# Step 3 Settings:
+radius = 0.0025 # 0.025 0.0025
+segments = 16 # 4 16
+ring_count = 8 # 3 8 
+
+
+# Step 4 Settings
 export_to = 'data'   
                         # Choose 'data' to follow the folder convention of the CompoundVision3D workflow. This will save the data in ./data/7_facet_positions/. My default.
                         # If choosing 'current', Blender will try to export to the directory of the currently open Blender file.
-                        # Choose 'documents' to save to 'documents/tmp/'. Sometimes, in case you're running the files on a mapped server, it may not be accessible for wirting, so the local documents folder is my go-to. 
-
-
+                        # Choose 'documents' to save to 'documents/tmp/'. Sometimes, in case you're running the files on a mapped server, it may not be accessible for wirting, so the local documents folder is my go-to.
 
 
 
@@ -67,10 +75,6 @@ elif step == 2:
 
 
 elif step == 3:
-    radius = 0.0025 # 0.025 0.0025
-    segments = 16 # 4 16
-    ring_count = 8 # 3 8 
-
     camera_type = 'PERSP' # 'ORTHO' 'PERSP'
 
     def hex2col(hex, normalize=False, precision=None):
