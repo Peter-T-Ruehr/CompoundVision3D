@@ -299,7 +299,7 @@ find_facets_fine <- function(df,
   # # plot a histogram of all distances
   # hist.plot <- hist(dist.clusters.tbl$value)
   # break_size <- hist.plot$breaks[2]
-  # hist_x <- hist.plot$breaks[which(hist.plot$counts == max(hist.plot$counts))] + break_size/2
+  # hist_x <- hist.plot$breaks[which(hist.plot$counts == max(hist.plot$counts))[1]] + break_size/2
   # lines(x = rep(hist_x, 2), y=c(0, (max(hist.plot$counts) + 0.05 * max(hist.plot$counts))),
   #       col = "blue", lty = 2)
   
@@ -343,7 +343,7 @@ find_facets_fine <- function(df,
     # Histogram
     hist.plot <- hist(dist.clusters.tbl$value)
     break_size <- hist.plot$breaks[2]
-    hist_x <- hist.plot$breaks[which(hist.plot$counts == max(hist.plot$counts))] + break_size/2
+    hist_x <- hist.plot$breaks[which(hist.plot$counts == max(hist.plot$counts))[1]] + break_size/2
     lines(x = rep(hist_x, 2), y=c(0, (max(hist.plot$counts) + 0.05 * max(hist.plot$counts))),
           col = "blue", lty = 2)
     # par(mfrow=c(1,1))
