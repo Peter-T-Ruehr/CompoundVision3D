@@ -1,4 +1,4 @@
-script_version = "0.9.9020";
+script_version = "0.9.9021";
 
 // data at X:\Pub\2019\Ruehr_compound_vision\data
 
@@ -83,6 +83,11 @@ else if (endsWith(filelist[0], ".nrrd")){
 	File.openSequence(parent_dir_path);
 	run("Nrrd ...", "load=[+parent_dir_path+dir_sep+filelist[0]]");
 }
+//else if (endsWith(filelist[0], ".czi")){
+//	print("Trying to open Carl Zeiss Image file in "+parent_dir_path+dir_sep+"...");
+//	File.openSequence(parent_dir_path);
+//	open(parent_dir_path+dir_sep+filelist[0]);
+//}
 
 Stack.getDimensions(width,height,channels,slices,frames);
 setSlice(slices/2);
@@ -110,7 +115,7 @@ Dialog.addMessage("___________________________________");
 	min = Dialog.getNumber();
 	max = Dialog.getNumber();
 	
-
+print("Shifting grey value histogram ...");
 //getRawStatistics(count, mean, min, max, std);
 run("Select None");
 run("Min...", "value=min stack");
