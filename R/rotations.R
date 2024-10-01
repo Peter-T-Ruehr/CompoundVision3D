@@ -434,3 +434,91 @@ rotate_point_cloud <- function(point_cloud, angles) {
     
   return(rotated_cloud_xyz)
 }
+
+
+
+#' Calculate normal of triangle in 3D
+#'
+#' xxx: add description
+#'
+#' @param A A `vector` with the `numeric` x, y, and z coordinges of point 1.
+#' @param B A `vector` with the `numeric` x, y, and z coordinges of point 2.
+#' @param C A `vector` with the `numeric` x, y, and z coordinges of point 3.
+#' @return Returns a `vector` with three `numeric` data points describing the 
+#' normal vector of the triangle.
+#'
+#' @export
+#' @examples
+#' xxx: add example
+#'
+calculate_normal <- function(A, B, C, normalize = TRUE) {
+  # Ensure the points are numeric vectors of length 3
+  if (length(A) != 3 || length(B) != 3 || length(C) != 3) {
+    stop("All points must be numeric vectors of length 3.")
+  }
+  
+  # Calculate the vectors AB and AC
+  AB <- B - A
+  AC <- C - A
+  
+  # Compute the cross product AB x AC
+  normal <- c(
+    AB[2] * AC[3] - AB[3] * AC[2],
+    AB[3] * AC[1] - AB[1] * AC[3],
+    AB[1] * AC[2] - AB[2] * AC[1]
+  )
+  
+  # Calculate the magnitude of the normal vector
+  magnitude <- sqrt(sum(normal^2))
+  
+  # Normalize the normal vector to get a unit normal vector
+  if(normalize == TRUE){
+    if (magnitude != 0) {
+      normal <- normal / magnitude
+    }
+  }
+  
+  return(normal)
+}
+
+
+#' Calculate angle between two vectors in 3D
+#'
+#' xxx: add description
+#'
+#' @param a A `vector` with three `numeric` data points describing vector 1.
+#' @param b A `vector` with three `numeric` data points describing vector b.
+#' @return Returns a `numeric` value with the angle in degree (°).
+#'
+#' @export
+#' @examples
+#' xxx: add example
+#'
+angle_between_vectors <- function(a, b) {
+  # # testing
+  # a = curr_normal
+  # b = center_vector
+  
+  # # plot vectors starting at 0
+  # # plot3d(x=NULL)
+  # lines3d(x = c(0, curr_normal[1]),
+  #         y = c(0, curr_normal[2]),
+  #         z = c(0, curr_normal[3]),
+  #         col = "cyan")
+  # lines3d(x = c(0, center_vector[1]),
+  #         y = c(0, center_vector[2]),
+  #         z = c(0, center_vector[3]),
+  #         col = "red")
+  
+  # Compute the dot product
+  dot_product <- sum(a * b)
+  
+  # Compute the magnitudes of the vectors
+  magnitude_a <- sqrt(sum(a^2))
+  magnitude_b <- sqrt(sum(b^2))
+  
+  # Compute the cosine of the angle between the vectors
+  cos_theta <- dot_product / (magnitude_a * magnitude_b)
+  angle_deg <- cos_theta*180/pi
+  return(angle_deg)
+}

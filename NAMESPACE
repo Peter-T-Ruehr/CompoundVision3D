@@ -2,8 +2,10 @@
 
 export(STL_triangles)
 export(align_to_global_axis)
+export(angle_between_vectors)
 export(angle_to_global_axis)
 export(calc_delta.phi)
+export(calculate_normal)
 export(closest_point_to_lines)
 export(continuous_color_ramp)
 export(find_facets_fine)
