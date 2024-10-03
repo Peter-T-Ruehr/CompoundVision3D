@@ -371,3 +371,102 @@ find_facets_fine <- function(df,
                   cutoff_max = round(round(h_max, 3),3),
                   cutoff_fin = round(h_final$x, 3)))
 }
+
+
+
+
+#' Agglomerative clustering
+#' 
+#' xxx: add description
+#' 
+#' @param df A tibble containing 3D point coordinates of vertices that 
+#' #' lie above threshold. Should contain the columns `x, y, z`. 
+#' #' Typically, this is the resulting tibble of the `get_local_height()` function.
+#' @param clust_melt_rad A numerical value of search radius for agglomerative
+#' clustering.
+#' @param iterations A numerical value of how many clustering iterations should
+#' be run. Default: `1`.
+#' @param cores Number of CPU cores to use. Default = `2`.
+#'
+#' @export
+#' @examples
+#' xxx: add example
+#' 
+agglomerative_clustering <- function(df,
+                                     clust_melt_rad,
+                                     iterations,
+                                     cores = 2){
+  # # testing
+  # df = rough_peaks
+  # clust_melt_rad = curr_search_diam/8
+  # iterations = 2
+  
+  # dplyr NULLs
+  ID <- x <- y <- z <- i <- local_height <- NULL
+  
+  df <- df %>% 
+    select(x, y, z)
+  
+  registerDoParallel(cores)
+  
+  k=1
+  i=1
+  for(k in 1:iterations){
+    print(paste0("iteration #: ",k))
+    if(k==1){
+      df_final <- df
+      print(paste0("original number of vertices: ", nrow(df_final)))
+    }
+    
+    curr_clust_melt_rad <- clust_melt_rad # clust_melt_rad + ((0) * 0.1) * clust_melt_rad # k-1
+    print(paste0("Current melting radius: ", round(curr_clust_melt_rad, 3)))
+    
+    
+    # define number of iterations of preliminary agglomerative clustering
+    local.clust.verts.means <- foreach(i = 1:nrow(df_final),
+                                       .combine=rbind, .packages=c('dplyr')) %dopar% { # .packages=c('dplyr', 'geometry')
+                                         
+                                         local.clust.verts <- df_final %>%
+                                           filter(x>(df_final$x[i]-curr_clust_melt_rad) & x<(df_final$x[i]+curr_clust_melt_rad) &
+                                                    y>(df_final$y[i]-curr_clust_melt_rad) & y<(df_final$y[i]+curr_clust_melt_rad) &
+                                                    z>(df_final$z[i]-curr_clust_melt_rad) & z<(df_final$z[i]+curr_clust_melt_rad))
+                                         # plot(local.clust.verts[,2:3])
+                                         tmp <- local.clust.verts %>% # local.clust.verts.mean
+                                           dplyr::summarize(median_x = median(x),
+                                                            median_y = median(y),
+                                                            median_z = median(z))
+                                         # points(local.clust.verts.mean[,2:3], pch=16,col="red")
+                                       }
+    
+    colnames(local.clust.verts.means) <- c("x", "y", "z")
+    
+    # colnames(local.clust.verts.means) <- as.vector(outer(c("local_meds_x", "local_meds_y", "local_meds_z"),
+    #                                                      k,
+    #                                                      paste, sep="_"))
+    
+    local.clust.verts.means <- 
+      distinct(local.clust.verts.means %>% 
+                 round(-1))
+    
+    
+    
+    df_final <- local.clust.verts.means
+    
+    
+    print(paste0("reduced number of vertices: ", nrow(df_final)))
+    
+    # dist.matr <- dist(local.clust.verts.means)
+    # dist.matr.tbl <- melt(as.matrix((dist.matr))) %>% as_tibble() %>% filter(Var1 < Var2) %>% 
+    #   filter(value <= 50)
+    # png(paste0(stl.folder, "/hist_below_50_",k,".png"))
+    # hist(dist.matr.tbl$value)
+    # dev.off()
+    
+  }
+  stopImplicitCluster()
+  
+  # plot3d(df, size = 3)
+  # points3d(df_final, col="red", size = 5)
+  
+  return(df_final)
+}
