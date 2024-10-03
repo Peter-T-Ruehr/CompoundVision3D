@@ -49,12 +49,18 @@ if step == 1:
     bpy.ops.mesh.select_all(action='DESELECT')
     # W + W: Lasso selection
     # bpy.ops.mesh.select_more()
+    for a in bpy.context.screen.areas:
+        if a.type == 'VIEW_3D':
+            for s in a.spaces:
+                if s.type == 'VIEW_3D':
+                    s.clip_end = 10000
+                    s.overlay.show_stats = True
 
 
 
 elif step == 2:
     import bpy
-    bpy.context.scene.unit_settings.length_unit = 'CENTIMETERS'
+    # bpy.context.scene.unit_settings.length_unit = 'CENTIMETERS'
 
     # apply scale and modifiers
     bpy.ops.object.modifier_add(type='DECIMATE')
