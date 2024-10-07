@@ -6,7 +6,7 @@ setSlice(slices/2);
 
 waitForUser("Threshold", "Find appropriate threshold level.");
 	Dialog.create("Threshold");
-	Dialog.addMessage("Please eappropriate threshold level.");
+	Dialog.addMessage("Define appropriate threshold level.");
 	Dialog.addNumber("Threshold :", 100);
 	Dialog.show();
 	
@@ -14,7 +14,7 @@ waitForUser("Threshold", "Find appropriate threshold level.");
 	
 //waitForUser("Resampling factor", "Set resampling factor.");
 	Dialog.create("Resampling factor");
-	Dialog.addMessage("Please eappropriate resampling factor.");
+	Dialog.addMessage("Define appropriate resampling factor.");
 	Dialog.addNumber("resampling :", 1);
 	Dialog.addMessage("Usually 1; between 1 and 2 for larger image stacks.");
 	Dialog.show();
