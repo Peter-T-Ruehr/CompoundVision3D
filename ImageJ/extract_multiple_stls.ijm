@@ -42,13 +42,32 @@ while(File.exists(log_dir_path)){
 
 filelist = getFileList(parent_dir_path);
 
-if (endsWith(filelist[0], ".nrrd")){
-	print("Trying to open nrrd file in "+parent_dir_path+dir_sep+"...");
-	//File.openSequence(parent_dir_path);
-	run("Nrrd ...", "load="+parent_dir_path+dir_sep+filelist[0]);
-} else {
-	exit("No *.nrrd file found.");
-}
+
+//Dialog.create("Choose file");
+//	Dialog.addMessage("___________________________________");
+//	for (i = 0; i < filelist.length; i++) {
+//		Dialog.addCheckbox(filelist[i], false);
+//	}
+//Dialog.show();
+
+Dialog.create("Choose file");
+	Dialog.addMessage("Choose stack file to load.");
+	Dialog.addMessage("File must be of format *.nrrd.");
+	Dialog.addChoice("Would like to save an STL of the current ROI?:", filelist);
+	Dialog.show();
+file_name = Dialog.getChoice();
+
+//if (endsWith(filelist[0], ".nrrd")){
+//	print("Trying to open nrrd file " + filelist[0]);
+//	print("in "+parent_dir_path+dir_sep+"...");
+//	//File.openSequence(parent_dir_path);
+//	run("Nrrd ...", "load="+parent_dir_path+dir_sep+filelist[0]);
+//} else {
+//	exit("No *.nrrd file found.");
+//}
+print("Trying to open nrrd file " + filelist[0]);
+print("in "+parent_dir_path+dir_sep+"...");
+run("Nrrd ...", "load="+parent_dir_path+dir_sep+file_name);
 
 title_original = getTitle();
 setTool("rectangle");
@@ -76,7 +95,9 @@ waitForUser("Threshold", "Find appropriate threshold level.");
 //	Dialog.addMessage("___________________________________");
 	Dialog.addCheckbox("Extract the surface of the whole eye?", false);
 	Dialog.addMessage("     This can be helpful to check the results.");
-	Dialog.addMessage("     The stack will be scaled down before.");
+	Dialog.addNumber("ROI stack size of whole eye (MB):", 50);
+	Dialog.addMessage("___________________________________");
+	Dialog.addNumber("Start with ROI/STL number:", 1);
 	Dialog.addMessage("___________________________________");
 	Dialog.show();
 	
@@ -84,33 +105,12 @@ waitForUser("Threshold", "Find appropriate threshold level.");
 	desired_size = Dialog.getNumber();
 	// resampling = Dialog.getNumber();
 	extract_whole_eye_surface = Dialog.getCheckbox();
-	
+	desired_size_whole = Dialog.getNumber();
+	start_loop = Dialog.getNumber() - 1;
+
+
 run("Select None");
 
-
-if(extract_whole_eye_surface == true){
-	// first scale whole stack to 100 MB
-	o = width*height*slices;
-	perc_d = 100 * pow(desired_size/o,1/3);
-	
-	print("*************************");
-	// print("Desired file size of " + d + " reached by reduction to " + perc_d + "%.");
-	// print(perc_d);
-	run("Scale...", "x="+perc_d+" y="+perc_d+" z="+perc_d+" interpolation=Bicubic average process create title=CV0028_Apis_mellifera_60292_eye2_CLAHE_cr_sc8243");
-	
-	
-	title_current = getTitle();
-	run("3D Viewer");
-	call("ij3d.ImageJ3DViewer.setCoordinateSystem", "false");
-	call("ij3d.ImageJ3DViewer.add", title_current, "White", title_current, threshold, "true", "true", "true", "1", "2");
-	
-	waitForUser("Save STL...", "Save binary STL file for the whole eye manually.\nName it eye.stl\nClick okay AFTER saving is finished.");
-	call("ij3d.ImageJ3DViewer.close");
-	selectImage(title_current);
-	close(); 
-}
-
-selectImage(title_original);
 //Dialog.create("Stack size");
 //Dialog.addNumber("Desired stack size for each 3D ROI (MB)", 100);
 //Dialog.addNumber("Desired stack size", 0);
@@ -149,12 +149,76 @@ number_of_ROIs_xyz = number_of_ROIs_x*number_of_ROIs_y*number_of_ROIs_z;
 
 print("There will be a total of "+number_of_ROIs_xyz+" ROIs to go through.");
 print("***************************");
+start_loop = parseFloat(start_loop);
+//print(start_loop);
+//print("--------");
+// calculate ROI number fractions
+counter=0;
+for (w = 0; w < number_of_ROIs_x; w++) {
+			curr_ROI_start_x = (w)*ROI_width;
+	for (h = 0; h < number_of_ROIs_y; h++) {
+			curr_ROI_start_y = (h)*ROI_height;
+		for (s = 0; s < number_of_ROIs_z; s++) {
+//			print(w);
+//			print(h);
+//			print(s);
+//			print("--");
+//			print(counter);
+//			print(start_loop);
+//			print("-----------");
+			if(counter==start_loop){
+//				print("*********************");
+//				print(counter+"="+start_loop);
+				w_start = w;
+				h_start = h;
+				s_start = s;
+//				print("*********************");
+				// break;
+			}
+			counter++;
+		}
+	}
+//	print("---------------------");
+}
+//print("w_start =");
+//print(w_start);
+//print("w_start =");
+//print(h_start);
+//print("s_start =");
+//print(s_start);
+
+
+if(extract_whole_eye_surface == true){
+	// first scale whole stack to 100 MB
+	o = width*height*slices;
+	perc_d = 100 * pow(desired_size_whole/o,1/3);
+	
+	print("*************************");
+	print("Scaling whole stack to " + 100 * perc_d + "%...");
+	// print(perc_d);
+	run("Scale...", "x="+perc_d+" y="+perc_d+" z="+perc_d+" interpolation=Bicubic average process create"); // title=CV0028_Apis_mellifera_60292_eye2_CLAHE_cr_sc8243
+	
+	
+	title_current = getTitle();
+	print("Creating 3D mesh..");
+	run("3D Viewer");
+	call("ij3d.ImageJ3DViewer.setCoordinateSystem", "false");
+	call("ij3d.ImageJ3DViewer.add", title_current, "White", title_current, threshold, "true", "true", "true", "1", "2");
+	
+	waitForUser("Save STL...", "Save binary STL file for the whole eye manually.\nName it eye.stl\nClick okay AFTER saving is finished.");
+	call("ij3d.ImageJ3DViewer.close");
+	selectImage(title_current);
+	close(); 
+	print("*************************");
+}
+
+selectImage(title_original);
 
 
 print("************************************");
 File.makeDirectory(log_dir_path);
 ROI_log_file = "STL_extraction_crop.log";
-print("Creating log file ("+ROI_log_file+")...");
+print("Writing log file ("+ROI_log_file+")...");
 open_log_file = File.open(log_dir_path+dir_sep+ROI_log_file);
 print(open_log_file, "ROI,x,y,z"); // counter + "," + curr_ROI_start_x + curr_ROI_start_y, curr_slice);
 //File.close(open_log_file)
@@ -165,30 +229,13 @@ for (w = 0; w < number_of_ROIs_x; w++) {
 	for (h = 0; h < number_of_ROIs_y; h++) {
 			curr_ROI_start_y = (h)*ROI_height;
 		for (s = 0; s < number_of_ROIs_z; s++) {
-			print("************************************");
+			
+		print("************************************");
 			print("ROI # = " + counter);
 			curr_slice = (s)*ROI_slices+1;
 			print("x = " + curr_ROI_start_x + "px = " + curr_ROI_start_x*px_size + "um.");
-			print("x = " + curr_ROI_start_y + "px = " + curr_ROI_start_y*px_size + "um.");
-			print("x = " + curr_slice + "px = " + curr_slice*px_size + "um.");
-			
-			setSlice(curr_slice);
-			//getSliceNumber();
-			curr_ROI_z_slices = ROI_slices;
-			// makeRectangle(x, y, width, height);
-			// print();
-			selectImage(title_original);
-			makeRectangle(curr_ROI_start_x, curr_ROI_start_y, ROI_width+1, ROI_height+1);
-			run("Duplicate...", "duplicate range="+curr_slice+"-"+(curr_slice+ROI_slices));
-			title_current = getTitle();
-			run("3D Viewer");
-			call("ij3d.ImageJ3DViewer.setCoordinateSystem", "false");
-			call("ij3d.ImageJ3DViewer.add", title_current, "White", title_current, threshold, "true", "true", "true", "1", "2");
-			
-			waitForUser("Save STL...", "Save binary STL file for the current ROI manually.\nCall it "+counter+".stl\nClick okay AFTER saving is finished.");
-			call("ij3d.ImageJ3DViewer.close");
-			selectImage(title_current);
-			close(); 
+			print("y = " + curr_ROI_start_y + "px = " + curr_ROI_start_y*px_size + "um.");
+			print("z = " + curr_slice + "px = " + curr_slice*px_size + "um.");
 			
 			//open_log_file = File.open(log_dir_path+dir_sep+ROI_log_file);
 			print(open_log_file, counter + "," + (curr_ROI_start_x)*px_size + "," + (curr_ROI_start_y)*px_size + "," + (curr_slice-1)*px_size);
@@ -198,10 +245,77 @@ for (w = 0; w < number_of_ROIs_x; w++) {
 		}
 	}
 }
-
 File.close(open_log_file)
+
 print("************************************");
-selectImage(title_original);
+print("Starting the manual STL saving process of " + number_of_ROIs_xyz-start_loop + " ROIs...");
+
+counter=start_loop+1;
+for (w = w_start; w < number_of_ROIs_x; w++) {
+			curr_ROI_start_x = (w)*ROI_width;
+	for (h = h_start; h < number_of_ROIs_y; h++) {
+			curr_ROI_start_y = (h)*ROI_height;
+		for (s = s_start; s < number_of_ROIs_z; s++) {
+			print("************************************");
+			print("ROI # = " + counter);
+			curr_slice = (s)*ROI_slices+1;
+			print("x = " + curr_ROI_start_x + "px = " + curr_ROI_start_x*px_size + "um.");
+			print("y = " + curr_ROI_start_y + "px = " + curr_ROI_start_y*px_size + "um.");
+			print("z = " + curr_slice + "px = " + curr_slice*px_size + "um.");
+			
+			setSlice(curr_slice);
+			//getSliceNumber();
+			curr_ROI_z_slices = ROI_slices;
+			// makeRectangle(x, y, width, height);
+			// print();
+			selectImage(title_original);
+			setSlice(curr_slice);
+			makeRectangle(curr_ROI_start_x, curr_ROI_start_y, ROI_width+1, ROI_height+1);
+			run("Duplicate...", "duplicate range="+curr_slice+"-"+(curr_slice+ROI_slices));
+			title_current = getTitle();
+			
+			Stack.getDimensions(width_ROI,height_ROI,channels_ROI,slices_ROI,frames_ROI);
+			
+			run("Select None");
+			setSlice(1); // round(slices_ROI/2)
+
+			waitForUser("Save STL of " + title_current + "?", "Check ROI to see if you want ot save an STL of it.\nClick okay AFTER checking.");
+			
+			Dialog.create("Save STL of " + title_current + "?");
+				Dialog.addChoice("Would like to save an STL of the current ROI?:", newArray("yes", "no - skip!"));
+				Dialog.show();
+			save_STL = Dialog.getChoice();
+			
+			if(save_STL == "yes"){
+				print("Creating 3D mesh...");
+	
+	
+				run("3D Viewer");
+				call("ij3d.ImageJ3DViewer.setCoordinateSystem", "false");
+				call("ij3d.ImageJ3DViewer.add", title_current, "White", title_current, threshold, "true", "true", "true", "1", "2");
+				
+				waitForUser("Save STL...", "Save binary STL file for the current ROI manually.\nCall it "+counter+".stl\nClick okay AFTER saving is finished.");
+				call("ij3d.ImageJ3DViewer.close");
+				
+				//open_log_file = File.open(log_dir_path+dir_sep+ROI_log_file);
+				// print(open_log_file, counter + "," + (curr_ROI_start_x)*px_size + "," + (curr_ROI_start_y)*px_size + "," + (curr_slice-1)*px_size);
+				//File.close(open_log_file)
+				
+			}
+			else{
+				print("Skipping ROI STL...");
+			}
+			
+			selectImage(title_current);
+			close(); 
+			counter++;
+		}
+	}
+}
+
+//File.close(open_log_file)
+print("************************************");
+//selectImage(title_original);
 //close(); 
 print("All done!");
 
