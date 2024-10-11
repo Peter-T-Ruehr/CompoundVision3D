@@ -1,11 +1,12 @@
 import bpy
 import csv
+from os import path as p
 bpy.context.scene.unit_settings.length_unit = 'CENTIMETERS'
 import re
 
 
 # steps:
-#     1 = import STL files of eye parts
+#     1 = downscale slected STLs by 1000
 #     2 = translate eye part objects
 #     3 = fuse objects and remove close vertices
 #     "all" = run all steps.
@@ -34,9 +35,11 @@ if step == 1:
                     s.clip_end = 10000
                     s.overlay.show_stats = True
 
-if step == 2:           
+elif step == 2:   
+    print("Step 2")        
     # Path to your CSV file
-    csv_file_path = '//datastorage/users/pruehr/Pub/2019/Ruehr_compound_vision/_bkp/multiple_STL_extraction/STL_extraction_log/STL_extraction_crop.log'
+    csv_file_path = p.join(curr_filepath+'STL_extraction_log/STL_extraction_crop.log')
+    print(csv_file_path)
 
     # Read the CSV file
     with open(csv_file_path, newline='') as csvfile:
@@ -62,7 +65,7 @@ if step == 2:
             x=x*0.001
             y=y*0.001
             z=z*0.001
-            
+                        
             obj = bpy.data.objects.get(obj_name)
             
             if obj:
@@ -76,7 +79,7 @@ if step == 2:
             else:
                 print(f"Object {obj_name} not found")
 
-if step == 3:
+elif step == 3:
     bpy.ops.object.select_all(action='SELECT')
     bpy.ops.object.join()
     bpy.ops.object.editmode_toggle()
