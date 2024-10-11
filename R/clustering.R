@@ -397,9 +397,11 @@ agglomerative_clustering <- function(df,
                                      iterations,
                                      cores = 2){
   # # testing
-  # df = rough_peaks
-  # clust_melt_rad = curr_search_diam/8
-  # iterations = 2
+  # df = rough_peaks %>%
+  # slice(1:1000)
+  # clust_melt_rad = (curr_search_diam/128*counter/2)
+  # iterations = 1
+  # cores=12
   
   # dplyr NULLs
   ID <- x <- y <- z <- i <- local_height <- NULL
@@ -444,13 +446,13 @@ agglomerative_clustering <- function(df,
     #                                                      k,
     #                                                      paste, sep="_"))
     
-    local.clust.verts.means <- 
+    df_final <- 
       distinct(local.clust.verts.means %>% 
-                 round(-1))
+                 round())
     
     
     
-    df_final <- local.clust.verts.means
+    # df_final <- local.clust.verts.means
     
     
     print(paste0("reduced number of vertices: ", nrow(df_final)))
