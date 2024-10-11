@@ -14,6 +14,10 @@ import re
 step = 0
 
 
+# Step 2 Settings:
+decimate_ratio = 0.125 # 0.25 0.125
+smooth_iterations = 3
+smooth_factor = 0.5
 
 # Step 3 Settings:
 radius = 0.0025 # 0.025 0.0025
@@ -59,15 +63,20 @@ if step == 1:
 
 
 elif step == 2:
-    import bpy
-    # bpy.context.scene.unit_settings.length_unit = 'CENTIMETERS'
+# bpy.context.scene.unit_settings.length_unit = 'CENTIMETERS'
 
     # apply scale and modifiers
     bpy.ops.object.modifier_add(type='DECIMATE')
-    bpy.context.object.modifiers["Decimate"].ratio = 0.25
+    bpy.context.object.modifiers["Decimate"].ratio = decimate_ratio
     bpy.ops.object.modifier_add(type='SMOOTH')
-    bpy.context.object.modifiers["Smooth"].iterations = 3
-    bpy.context.object.modifiers["Smooth"].factor = 0.5
+    bpy.context.object.modifiers["Smooth"].iterations = smooth_iterations
+    bpy.context.object.modifiers["Smooth"].factor = smooth_factor
+#    bpy.ops.object.modifier_add(type='LAPLACIANSMOOTH')
+#    bpy.context.object.modifiers["LaplacianSmooth"].iterations = smooth_iterations
+#    bpy.context.object.modifiers["LaplacianSmooth"].lambda_factor = smooth_lambda_factor
+#    bpy.context.object.modifiers["LaplacianSmooth"].lambda_border = smooth_lambda_border
+
+
 
 
     # flip normales
