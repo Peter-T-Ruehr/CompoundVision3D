@@ -141,13 +141,19 @@ number_of_ROIs_x = Math.ceil(width/ROI_width);
 number_of_ROIs_y = Math.ceil(height/ROI_height);
 number_of_ROIs_z = Math.ceil(slices/ROI_slices);
 
+ROI_width = Math.ceil(width/number_of_ROIs_x);
+ROI_height = Math.ceil(height/number_of_ROIs_y);
+ROI_slices = Math.ceil(slices/number_of_ROIs_z);
+
 number_of_ROIs_xyz = number_of_ROIs_x*number_of_ROIs_y*number_of_ROIs_z;
 
 //print("number_of_ROIs_witdh = "+number_of_ROIs_x);
 //print("number_of_ROIs_height = "+number_of_ROIs_y);
 //print("number_of_ROIs_slices = "+number_of_ROIs_z);
 
-print("There will be a total of "+number_of_ROIs_xyz+" ROIs to go through.");
+print("***************************");
+print("There will be a total of "+ number_of_ROIs_xyz +" ROIs to go through.");
+print("Each ROI will have the size " + ROI_width+" x " + ROI_height+" x " + ROI_slices + ".");
 print("***************************");
 start_loop = parseFloat(start_loop);
 //print(start_loop);
@@ -231,11 +237,11 @@ for (w = 0; w < number_of_ROIs_x; w++) {
 		for (s = 0; s < number_of_ROIs_z; s++) {
 			
 		print("************************************");
-			print("ROI # = " + counter);
+//			print("ROI # = " + counter);
 			curr_slice = (s)*ROI_slices+1;
-			print("x = " + curr_ROI_start_x + "px = " + curr_ROI_start_x*px_size + "um.");
-			print("y = " + curr_ROI_start_y + "px = " + curr_ROI_start_y*px_size + "um.");
-			print("z = " + curr_slice + "px = " + curr_slice*px_size + "um.");
+//			print("x = " + curr_ROI_start_x + "px = " + curr_ROI_start_x*px_size + "um.");
+//			print("y = " + curr_ROI_start_y + "px = " + curr_ROI_start_y*px_size + "um.");
+//			print("z = " + curr_slice + "px = " + curr_slice*px_size + "um.");
 			
 			//open_log_file = File.open(log_dir_path+dir_sep+ROI_log_file);
 			print(open_log_file, counter + "," + (curr_ROI_start_x)*px_size + "," + (curr_ROI_start_y)*px_size + "," + (curr_slice-1)*px_size);
@@ -257,7 +263,7 @@ for (w = w_start; w < number_of_ROIs_x; w++) {
 			curr_ROI_start_y = (h)*ROI_height;
 		for (s = s_start; s < number_of_ROIs_z; s++) {
 			print("************************************");
-			print("ROI # = " + counter);
+			print("ROI # = " + counter + " / " + number_of_ROIs_xyz);
 			curr_slice = (s)*ROI_slices+1;
 			print("x = " + curr_ROI_start_x + "px = " + curr_ROI_start_x*px_size + "um.");
 			print("y = " + curr_ROI_start_y + "px = " + curr_ROI_start_y*px_size + "um.");
