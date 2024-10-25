@@ -58,7 +58,7 @@ get_local_heights <- function(df,
                            .combine=rbind, .packages=c('dplyr', 'geometry')) %dopar% {
                              
                              curr.facet.x.y.z <- df %>%
-                               dplyr::filter(ID == i) %>%
+                               dplyr::slice(i) %>%
                                select(x, y, z) %>%
                                as.numeric()
                              
