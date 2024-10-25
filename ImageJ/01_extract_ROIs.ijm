@@ -1,6 +1,12 @@
-script_version = "0.9.9021";
+/* Extract regrions of interest (ROIs) for both eyes and the head
+ * 
+ * This script guides you through the process of extracting one ROI
+ * for each eye and one for the whole head.
+ * 
+ * Peter T. Rühr (October, 2024)
+ */
 
-// data at X:\Pub\2019\Ruehr_compound_vision\data
+script_version = "0.9.9022";
 
 run("Collect Garbage");
 requires("1.39l");
@@ -101,6 +107,19 @@ selectWindow("original");
 // make sure pixel size is identical in all 3 dimensions
 run("Properties...", "channels=1 slices=slices frames=1 pixel_width=px_size pixel_height=px_size voxel_depth=px_size");
 
+// get min and max gray values
+run("Set Measurements...", "min redirect=None decimal=0");
+run("Measure");
+//getResults("Min", 1);
+Min=getResult("Min");
+Max=getResult("Max");
+// print(Min);
+// print(Max);
+if (isOpen("Results")) { 
+     selectWindow("Results"); 
+     run("Close"); 
+}
+
 // define rectangle for BC
 setTool("rectangle");
 waitForUser("Define rectangle and get grey values for contrast enhancement.");
@@ -108,8 +127,8 @@ run("Brightness/Contrast...");
 run("Select None");
 Dialog.create("Settings");
 Dialog.addMessage("___________________________________");
-	Dialog.addNumber("Minimum value: ", 10000, 0, 5, " of histogram");
-	Dialog.addNumber("Maximum value: ", 46000, 0, 5, " of histogram");
+	Dialog.addNumber("Minimum value: ", Min, 0, 5, " of histogram");
+	Dialog.addNumber("Maximum value: ", Max, 0, 5, " of histogram");
 	Dialog.show();
 	
 	min = Dialog.getNumber();
@@ -126,10 +145,10 @@ setTool("rectangle");
 waitForUser("Define rectangle for head ROI.");
 getSelectionCoordinates(x_head, y_head);
 
-waitForUser("1) Check stack for first and last image number in z direction of head ROI\n2) AFTERWARDS, click 'Ok'."); 
+waitForUser("1) Check stack for first and last slice number in z direction of head ROI\n2) AFTERWARDS, click 'Ok'."); 
 	curr_slice = getSliceNumber();
-	Dialog.create("Welcome");
-	Dialog.addMessage("Please enter number of first and last image.");
+	Dialog.create("First and last slice");
+	Dialog.addMessage("Please enter number of first and last image slice of head ROI.");
 	Dialog.addMessage("___________________________________");
 	Dialog.addNumber("First image:", 1);
 	Dialog.addNumber("Last image:", curr_slice);
@@ -144,10 +163,10 @@ setTool("rectangle");
 waitForUser("Define rectangle for eye1 ROI.");
 getSelectionCoordinates(x_eye1, y_eye1);
 
-waitForUser("1) Check stack for first and last image number in z direction of eye1 ROI\n2) AFTERWARDS, click 'Ok'."); 
+waitForUser("1) Check stack for first and last slice number in z direction of eye1 ROI\n2) AFTERWARDS, click 'Ok'."); 
 	curr_slice = getSliceNumber();
-	Dialog.create("Welcome");
-	Dialog.addMessage("Please enter number of first and last image.");
+	Dialog.create("First and last slice");
+	Dialog.addMessage("Please enter number of first and last slice of eye1 ROI.");
 	Dialog.addMessage("___________________________________");
 	Dialog.addNumber("First image:", 1);
 	Dialog.addNumber("Last image:", curr_slice);
@@ -163,10 +182,10 @@ setTool("rectangle");
 waitForUser("Define rectangle for eye2 ROI.");
 getSelectionCoordinates(x_eye2, y_eye2);
 
-waitForUser("1) Check stack for first and last image number in z direction of eye2 ROI\n2) AFTERWARDS, click 'Ok'."); 
+waitForUser("1) Check stack for first and last slice number in z direction of eye2 ROI\n2) AFTERWARDS, click 'Ok'."); 
 	curr_slice = getSliceNumber();
-	Dialog.create("Welcome");
-	Dialog.addMessage("Please enter number of first and last image.");
+	Dialog.create("First and last slice");
+	Dialog.addMessage("Please enter number of first and last slice id eye2 ROI.");
 	Dialog.addMessage("___________________________________");
 	Dialog.addNumber("First image:", 1);
 	Dialog.addNumber("Last image:", curr_slice);
