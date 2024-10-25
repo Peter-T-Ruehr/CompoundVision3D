@@ -1,6 +1,8 @@
 Stack.getDimensions(width, height, channels, slices, frames);
 curr_slice = getSliceNumber();
 
+waitForUser("1) Draw the Region of Interest (ROI)\nwith any selection tool from the menue.\n2) Click 'Ok' AFTERWARDS."); 
+
 Dialog.create("Presettings");
 Dialog.addMessage("Clearing tool");
 Dialog.addMessage("___________________________________");
@@ -17,7 +19,6 @@ cl_range = Dialog.getCheckbox();
 slice_start = Dialog.getNumber();
 slice_last = Dialog.getNumber()+1;
 
-waitForUser("1) Select an image from your stack and draw the Region of Interest (ROI)\ndirectly onto that image with any selection tool from the menue.\n2) Click 'Ok' AFTERWARDS."); 
 run("Set Measurements...", "  area redirect=None decimal=3");
 run("Measure");
 area_ROI_um = getResult("Area", 0);
