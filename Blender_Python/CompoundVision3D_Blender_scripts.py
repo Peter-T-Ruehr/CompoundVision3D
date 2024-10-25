@@ -16,11 +16,12 @@ step = 0
 
 # Step 2 Settings:
 decimate_ratio = 0.125 # 0.25 0.125
+
 smooth_iterations = 3
 smooth_factor = 0.5
 
 # Step 3 Settings:
-radius = 0.0025 # 0.025 0.0025
+diameter = 168 # 25 2.5
 segments = 16 # 4 16
 ring_count = 8 # 3 8 
 
@@ -90,6 +91,8 @@ elif step == 2:
 
 
 elif step == 3:
+    radius = diameter/100/2
+    
     camera_type = 'PERSP' # 'ORTHO' 'PERSP'
 
     def hex2col(hex, normalize=False, precision=None):
@@ -113,17 +116,19 @@ elif step == 3:
 
     ## remove all
     #bpy.ops.object.delete(use_global=False, confirm=False)
-
-    file = csv.reader(open(p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/6_fine_clusters/', curr_filename + '_fine_clusters.csv'), newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_fine_clusters
+    
+    csv_file_path = p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/1_pre_STLs/CV0038_Heloderma_suspectum_JUVENILE_BODY/6_fine_clusters/', curr_filename + '_fine_clusters.csv')
+    
+    file = csv.reader(open(csv_file_path, newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_fine_clusters
     # file = csv.reader(open(p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/6_fine_clusters/', 'CV0011_Tricholepidion_gertschi_Blanke_4025_eye2_fine_clusters.csv'), newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_fine_clusters
 
-    print(file)
+    print(csv_file_path)
 
     #bpy.ops.material.new()
     #bpy.data.materials["Material"].node_tree.nodes["Principled BSDF"].inputs[0].default_value = (0, 0, 0, 1)
 
     print("Importing ommatidia coordinate data - this might take a bit...")
-    for idx, row in enumerate(file):
+    for idx, row in enumerate(file): # 
     #    print(idx, row)
         if idx > 0:
             
@@ -131,30 +136,32 @@ elif step == 3:
             y = float(row[1])
             z = float(row[2])
 
-            bpy.ops.mesh.primitive_uv_sphere_add( location = ( x/1000, y/1000, z/1000 ),
-                segments=segments, ring_count=ring_count, radius=radius)
+#            bpy.ops.mesh.primitive_uv_sphere_add( location = ( x/1000, y/1000, z/1000 ),
+#                segments=segments, ring_count=ring_count, radius=radius)
+            
+            bpy.ops.object.empty_add(type='SPHERE', radius=radius, align='WORLD', location=( x/1000, y/1000, z/1000 ), scale=(1, 1, 1))
 
             ob = bpy.context.object
             ob.name = row[3]
             
-            me = ob.data
-            
-            curr_material = 'Material_'+str(idx)
-            curr_col = "67032F" 
-            curr_RGB_ = hex2col(curr_col)
-            curr_RGB = [x / 255 for x in curr_RGB_]
-            # print(curr_material, ': Hex#', curr_col,  ' --> RGB ', curr_RGB)
-            curr_RGB.append(1)
-            # print(curr_RGB)
-            
-            mat = bpy.data.materials.new(name=curr_material)
-            mat.diffuse_color = curr_RGB
-            me.materials.append(mat)
+#            me = ob.data
+#            
+#            curr_material = 'Material_'+str(idx)
+#            curr_col = "67032F" 
+#            curr_RGB_ = hex2col(curr_col)
+#            curr_RGB = [x / 255 for x in curr_RGB_]
+#            # print(curr_material, ': Hex#', curr_col,  ' --> RGB ', curr_RGB)
+#            curr_RGB.append(1)
+#            # print(curr_RGB)
+#            
+#            mat = bpy.data.materials.new(name=curr_material)
+#            mat.diffuse_color = curr_RGB
+#            me.materials.append(mat)
             
             if idx % 10 == 0:
                 print(idx)
 
-    print("All done")
+    print("All done") 
 
 
 elif step == 4:
