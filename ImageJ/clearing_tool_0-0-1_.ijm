@@ -19,6 +19,13 @@ cl_range = Dialog.getCheckbox();
 slice_start = Dialog.getNumber();
 slice_last = Dialog.getNumber()+1;
 
+
+if(bg_black == true){
+	run("Colors...", "foreground=white background=black selection=yellow");
+} else {
+	run("Colors...", "foreground=white background=white selection=yellow");
+}
+
 run("Set Measurements...", "  area redirect=None decimal=3");
 run("Measure");
 area_ROI_um = getResult("Area", 0);

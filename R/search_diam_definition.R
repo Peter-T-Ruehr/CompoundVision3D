@@ -10,7 +10,7 @@
 #' @examples
 #' # xxx: add example
 #'
-search_diam_interactive <- function(df){
+facet_size_diam_interactive <- function(df){
   # dplyr NULLs
   x <- y <- z <- NULL
   
@@ -29,7 +29,7 @@ search_diam_interactive <- function(df){
                   aspect = "iso", col = "blue")
     
     # calculate appropriate sphere size
-    selection_sphere_size = 0.025 * (max(df$x) - min(df$x))
+    selection_sphere_size = 0.01 * (max(df$x) - min(df$x))
     
     continue <- readline(prompt="Finished rotation? (\"y\" = yes; \"n\" = no\")")
     if(continue == "Y" | continue == "y") run = TRUE
@@ -80,8 +80,8 @@ search_diam_interactive <- function(df){
   print(paste0("Facet diameter: ~", round(dist_between_points,2)))
   
   # calculate search diameter ~ should be ~3 x facet size
-  search_diam <- round(dist_between_points*3, 3)
-  print(paste0("Search diameter: ", search_diam))
+  search_diam <- dist_between_points
+  print(paste0("Search diameter: ", round(search_diam,3)))
   
   # plot vertex coordinates and search dimater sphere to check its size
   plot3d(df, aspect = "iso", col = "blue")

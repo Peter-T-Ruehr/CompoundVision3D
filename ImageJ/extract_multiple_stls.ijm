@@ -79,7 +79,7 @@ run("Select None");
 setSlice(slices/2);
 
 waitForUser("Threshold", "Find appropriate threshold level.");
-	Dialog.create("Threshold");
+Dialog.create("Threshold");
 	Dialog.addMessage("___________________________________");
 	Dialog.addMessage("Define appropriate threshold level.");
 	Dialog.addNumber("Threshold :", 100);

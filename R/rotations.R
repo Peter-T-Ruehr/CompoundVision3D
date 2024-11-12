@@ -214,12 +214,12 @@ align_to_global_axis = function(df,
   
   # add right eye
   facet_positions_df_xyz_aligned_yx_fin_trans_x_LR <- facet_positions_df_xyz_aligned_yx_fin_trans_x %>% 
-    mutate(ID = paste("L", ID, sep = "_"),
-           point_col = "green") %>% 
+    mutate(ID = paste("L", ID, sep = "_")) %>% #,
+           # point_col = "green") %>% 
     add_row(facet_positions_df_xyz_aligned_yx_fin_trans_x %>% 
               mutate(ID = paste("R", ID, sep = "_"),
-                     x = -1*x,
-                     point_col = "red")) 
+                     x = -1*x)) #,
+                     # point_col = "red")) 
   
   # plot3d(facet_positions_df_xyz_aligned_yx_fin_trans_x_LR, aspect = "iso", col = facet_positions_df_xyz_aligned_yx_fin_trans_x_LR$point_col)
   
@@ -246,8 +246,8 @@ align_to_global_axis = function(df,
   
   # combine dfs again
   all_combined_yx_fin_trans_x_LR <- rbind(facet_positions_df_xyz_aligned_yx_fin_trans_x_LR,
-                                          LMs_df_xyz_aligned_yx_fin_trans_x %>% 
-                                            mutate(point_col = NA)) 
+                                          LMs_df_xyz_aligned_yx_fin_trans_x) # %>% 
+                                            # mutate(point_col = NA)) 
   
   # # translate everything in y and z so that midpoint between eyes is at 0,0,0
   all_combined_yx_fin_trans_xyz_LR <- all_combined_yx_fin_trans_x_LR %>%

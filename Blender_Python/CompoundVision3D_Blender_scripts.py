@@ -5,7 +5,7 @@ bpy.context.scene.unit_settings.length_unit = 'CENTIMETERS'
 import re
 
 # steps:
-#     1 = import STL file of current eye to manually extract its surface
+#     1 = import STL file of current eye and modify its to manually extract its surface
 #     2 = add modifiers before manual export of the extracted surface of current eye as ASCII STL
 #     3 = import facet position results of R algorithm
 #     4 = export facet positions after manual check and corrections; define the path you want to export in next line.
@@ -15,13 +15,13 @@ step = 0
 
 
 # Step 2 Settings:
-decimate_ratio = 0.125 # 0.25 0.125
+decimate_ratio = 0.25 # 0.25 0.125
 
 smooth_iterations = 3
 smooth_factor = 0.5
 
 # Step 3 Settings:
-diameter = 168 # 25 2.5
+diameter = 2.5 # 25 2.5
 segments = 16 # 4 16
 ring_count = 8 # 3 8 
 
@@ -117,7 +117,7 @@ elif step == 3:
     ## remove all
     #bpy.ops.object.delete(use_global=False, confirm=False)
     
-    csv_file_path = p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/1_pre_STLs/CV0038_Heloderma_suspectum_JUVENILE_BODY/6_fine_clusters/', curr_filename + '_fine_clusters.csv')
+    csv_file_path = p.join(csv_file_path = p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/6_fine_clusters', curr_filename + '_fine_clusters.csv')
     
     file = csv.reader(open(csv_file_path, newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_fine_clusters
     # file = csv.reader(open(p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/6_fine_clusters/', 'CV0011_Tricholepidion_gertschi_Blanke_4025_eye2_fine_clusters.csv'), newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_fine_clusters

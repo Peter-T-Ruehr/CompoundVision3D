@@ -34,7 +34,7 @@ get_local_heights <- function(df,
   # #/ testing
   
   # dplyr NULLs
-  ID <- x <- y <- z <- value <- value.1 <- value.2 <- row_number <- norm.x <- 
+  x <- y <- z <- value <- value.1 <- value.2 <- row_number <- norm.x <- 
     norm.y <- norm.z <- i <- search_diam_local_height <- local_height <- NULL
   
   # define function to normalize vector
