@@ -1,3 +1,5 @@
+script_version = "0.0.9021"
+
 import bpy, csv, math
 from math import pi
 from os import path as p
@@ -117,7 +119,7 @@ elif step == 3:
     ## remove all
     #bpy.ops.object.delete(use_global=False, confirm=False)
     
-    csv_file_path = p.join(csv_file_path = p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/6_fine_clusters', curr_filename + '_fine_clusters.csv')
+    csv_file_path = p.join(csv_file_path = p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/6_fine_clusters', curr_filename + '_fine_clusters.csv'))
     
     file = csv.reader(open(csv_file_path, newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_fine_clusters
     # file = csv.reader(open(p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/6_fine_clusters/', 'CV0011_Tricholepidion_gertschi_Blanke_4025_eye2_fine_clusters.csv'), newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_fine_clusters
@@ -169,7 +171,7 @@ elif step == 4:
     # from os import path as p
     # bpy.context.scene.unit_settings.length_unit = 'CENTIMETERS'
     
-        
+    # get path to computer'S Documents folder
     def get_documents_path():
         # Cross-platform way to get the user's home directory
         home_dir = p.expanduser("~")
