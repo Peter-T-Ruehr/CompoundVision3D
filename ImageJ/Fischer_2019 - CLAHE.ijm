@@ -1,3 +1,5 @@
+script_version = "0.0.9000";
+
 blocksize = 127;
 histogram_bins = 256;
 maximum_slope = 3;

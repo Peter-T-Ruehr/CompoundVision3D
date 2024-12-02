@@ -1,3 +1,5 @@
+script_version = "0.0.9005";
+
 Stack.getDimensions(width, height, channels, slices, frames);
 curr_slice = getSliceNumber();
 

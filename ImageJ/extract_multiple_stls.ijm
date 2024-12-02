@@ -1,4 +1,4 @@
-script_version = "0.9.0000";
+script_version = "0.9.0003";
 
 requires("1.39l");
 if (isOpen("Log")) { 

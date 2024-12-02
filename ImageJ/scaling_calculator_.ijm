@@ -6,6 +6,9 @@
  *   
  *   Peter T.Ruehr (2016)
  */
+ 
+script_version = "0.0.9003";
+
 
 if (isOpen("Log")) { 
      selectWindow("Log"); 

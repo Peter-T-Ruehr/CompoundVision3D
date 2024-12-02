@@ -1,3 +1,5 @@
+script_version = "0.0.9001";
+
 dir = getDirectory("Choose a Directory ");
 count = 1;
 listFiles(dir); 

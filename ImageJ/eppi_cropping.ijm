@@ -5,6 +5,9 @@
  *   
  *   PTR (2020)
  */
+
+script_version = "0.0.9007";
+
  
  requires("1.39l");
 if (isOpen("Log")) { 
