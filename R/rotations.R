@@ -16,318 +16,112 @@
 #'
 align_to_global_axis = function(df,
                                 line_points_y_ind,
-                                line_points_x_ind,
-                                eye_landmarks){
+                                line_points_x_inds){
   
   # # testing
   # df = all_coords_combined
-  # line_points_y_ind = line_points_y
   # line_points_x_ind = line_points_x
-  # eye_landmarks = eye_landmarks
+  # line_points_y_ind = line_points_y
   
-  # select only xyz columns
-  df_xyz <- df %>%
-    select(x,y,z)
+  # rotate_points_tibble <- function(points) {
+  require(tibble)
+  require(dplyr)
   
-  # # select only xyz normal columns
-  # df_xyz_norms <- df %>%
-  #   select(norm.x,norm.y,norm.z)
-  
-  # line_points are the points to which it should be rotated
-  line_points_x <- df_xyz %>%
-    slice(line_points_y_ind)
-  
-  # define axis to rotate
-  x = line_points_x %>%
-    slice(2) %>%
-    unlist(., use.names=FALSE) -
-    line_points_x %>%
-    slice(1) %>%
-    unlist(., use.names=FALSE)
-  # x
-  
-  # define target (global) axis
-  # if(axis == "x"){
-  #   y <- c(1,0,0)
-  # } else if(axis == "y"){
-  #   y <- c(0,1,0)
-  # } else if(axis == "z"){
-  #   y <- c(0,0,1)
-  # }
-  # # y
-  y <- c(0,1,0)
-  
-  u=x/sqrt(sum(x^2))
-  
-  v=y-sum(u*y)*u
-  if(v[1] == 0 & v[2] == 0 & v[3] == 0){
-    print("already aligned to global y axis.")
-    df_xyz_aligned_y <- df_xyz
-    # df_xyz_norms_aligned_y <- df_xyz_norms
-  } else {
-    v=v/sqrt(sum(v^2))
-    
-    cost=sum(x*y)/sqrt(sum(x^2))/sqrt(sum(y^2))
-    
-    sint=sqrt(1-cost^2);
-    
-    R <- diag(length(x)) - u %*% t(u) - v %*% t(v) +
-      cbind(u,v) %*% matrix(c(cost,-sint,sint,cost), 2) %*% t(cbind(u,v))
-    
-    df_xyz_aligned_y <- as_tibble(as.matrix(df_xyz)%*% R) %>%
-      round(., 8)
-    # df_xyz_norms_aligned_y <- as_tibble(as.matrix(df_xyz_norms)%*% R) %>%
-    #   round(., 8)
+  # Ensure the tibble has the required columns
+  if (!all(c("x", "y", "z") %in% colnames(df))) {
+    stop("Input tibble must have columns: x, y, z")
   }
   
-  # define column names
-  colnames(df_xyz_aligned_y) <- c("x", "y", "z")
-  # colnames(df_xyz_norms_aligned_y) <- c("norm.x", "norm.y", "norm.z")
-  
-  df_xyz_aligned_y <- df_xyz_aligned_y %>% 
-    mutate(ID =df$ID,
-           type = df$type)
-  
-  # df_xyz_norms_aligned_y$ID <- df$ID
-  # df_xyz_aligned_y <- df_xyz_aligned_y %>%
-  #   left_join(df %>%
-  #               select(-c(x,y,z,norm.x,norm.y,norm.z)), by="ID") #%>%
-  #   left_join(df_xyz_norms_aligned_y, by="ID")
-  
-  
-  # extract single dfs for plotting
-  LMS_df_xyz_aligned_y <- df_xyz_aligned_y %>%
-    filter(type=="LM")
-  
-  facet_positions_df_xyz_aligned_y <- df_xyz_aligned_y %>%
-    filter(type=="facet")
-  
-  
-  # plot3d(facet_positions_df_xyz_aligned_y %>%
-  #          select(x, y, z),
-  #        col="red", size=10, alpha = 1,
-  #        aspect = "iso")
-  # 
-  # 
-  # points3d(LMS_df_xyz_aligned_y %>%
-  #          select(x, y, z),
-  #          size=10, col="blue")
-  # 
-  # text3d(LMS_df_xyz_aligned_y %>%
-  #          select(x, y, z),
-  #        texts = LMS_df_xyz_aligned_y$ID)
-  
-  
-  
-  # rotate around y to align left and right landmarks in x axis
-  # get angle between left-right axis of head to global x axis
-  left_coord <- df_xyz_aligned_y %>% 
-    slice(line_points_x_ind[1]) %>% 
-    select(x,y,z) %>% 
-    unlist()
-  
-  right_coord <- df_xyz_aligned_y %>% 
-    slice(line_points_x_ind[2]) %>% 
-    select(x,y,z) %>% 
-    unlist()
-  
-  left_right_vector <-  right_coord-left_coord
-  
-  # # add line to existing plot
-  # lines3d(rbind(left_coord, left_coord+left_right_vector))
-  
-  print("Rotating data...")
-  global_axis <- c(1, 0, 0)
-  angle_x <- angle_to_global_axis(left_right_vector, global_axis)
-  # print(angle_x)
-  if(left_right_vector[1] > 0){ #  & mirror == 0
-    angle_x <- -1*angle_x
-  }
-  # print(angle_x)
-  
-  # define all angles
-  angles <- c(0, angle_x , 0)
-  
-  # plot3d(df_xyz_aligned_y %>%
-  #          select(x,y,z))
-  
-  # Rotate the point cloud: first facet positions, then facet normals
-  df_xyz_aligned_yx <- rotate_point_cloud(df_xyz_aligned_y, 
-                                          angles)
-  
-  # df_xyz_aligned_y_facet_normals <- df_xyz_aligned_y %>% 
-  #   filter(!is.na(norm.x)) %>% 
-  #   select(ID,norm.x,norm.y,norm.z)
-  # colnames(df_xyz_aligned_y_facet_normals) <- c("ID", "x","y","z")
-  # df_xyz_aligned_yx_facet_normals <- rotate_point_cloud(df_xyz_aligned_y_facet_normals, 
-  #                                                       angles)
-  
-  # colnames(df_xyz_aligned_yx_facet_normals) <- c("norm.x","norm.y","norm.z","ID")
-  
-  # # get rotated normals into df_xyz_aligned_yx
-  # df_xyz_aligned_yx <- df_xyz_aligned_yx %>% 
-  #   select(-c(norm.x, norm.y, norm.z)) %>% 
-  #   left_join(df_xyz_aligned_yx_facet_normals, by = "ID")
-  
-  # # extract single dfs
-  # LMS_df_xyz_aligned_yx <- df_xyz_aligned_yx %>%
-  #   filter(is.na(norm.x))
-  # 
-  # facet_positions_df_xyz_aligned_yx <- df_xyz_aligned_yx %>%
-  #   filter(!is.na(norm.x))
-  # 
-  # # mirroring data
-  # LMS_df_xyz_aligned_yx$x <- -1*LMS_df_xyz_aligned_yx$x
-  # LMS_df_xyz_aligned_yx$z <- -1*LMS_df_xyz_aligned_yx$z
-  # 
-  # # all_coords_combined_rot_fin_mir <- rbind(all_coords_combined_rot_fin,
-  # #                                          LMS_df_rot_fin)
-  # 
-  # # mirroring data
-  # facet_positions_df_xyz_aligned_yx$x <- -1*facet_positions_df_xyz_aligned_yx$x
-  # facet_positions_df_xyz_aligned_yx$z <- -1*facet_positions_df_xyz_aligned_yx$z
-  
-  
-  # mirroring data
-  df_xyz_aligned_yx_fin <- df_xyz_aligned_yx
-  df_xyz_aligned_yx_fin$x <- -1*df_xyz_aligned_yx_fin$x
-  df_xyz_aligned_yx_fin$z <- -1*df_xyz_aligned_yx_fin$z
-  # 
-  #     plot3d(df_xyz_aligned_yx_fin, aspect = "iso")
-  
-  # translate everything so that clypeolabral suture = x0
-  clypeop_labral_suture_pos_x <- df_xyz_aligned_yx_fin %>% 
-    filter(ID == "clypeolabral_suture") %>% 
-    pull(x)
-  
-  # move point cloud along x axis
-  df_xyz_aligned_yx_fin_trans_x <- df_xyz_aligned_yx_fin %>% 
-    mutate(x = x-clypeop_labral_suture_pos_x)
-  
-  # plot3d(df_xyz_aligned_yx_fin_trans_x, aspect = "iso")
-  
-  facet_positions_df_xyz_aligned_yx_fin_trans_x <- df_xyz_aligned_yx_fin_trans_x %>% 
-    slice(eye_landmarks)
-  
-  LMs_df_xyz_aligned_yx_fin_trans_x <- df_xyz_aligned_yx_fin_trans_x %>% 
-    slice(-eye_landmarks)
-  
-  # add right eye
-  facet_positions_df_xyz_aligned_yx_fin_trans_x_LR <- facet_positions_df_xyz_aligned_yx_fin_trans_x %>% 
-    mutate(ID = paste("L", ID, sep = "_")) %>% #,
-           # point_col = "green") %>% 
-    add_row(facet_positions_df_xyz_aligned_yx_fin_trans_x %>% 
-              mutate(ID = paste("R", ID, sep = "_"),
-                     x = -1*x)) #,
-                     # point_col = "red")) 
-  
-  # plot3d(facet_positions_df_xyz_aligned_yx_fin_trans_x_LR, aspect = "iso", col = facet_positions_df_xyz_aligned_yx_fin_trans_x_LR$point_col)
-  
-  
-  # print("Plotting rotated data...")
-  # plot3d(facet_positions_df_xyz_aligned_yx_fin_trans_x_LR %>%
-  #          filter(type=="facet") %>%
-  #          select(x, y, z),
-  #        col=facet_positions_df_xyz_aligned_yx_fin_trans_x_LR$point_col, size=10, alpha = 1, type = "p",
-  #        aspect = "iso")
-  # 
-  # points3d(LMs_df_xyz_aligned_yx_fin_trans_x %>%
-  #            select(x, y, z),
-  #          col = "blue", size=10)
-  # 
-  # text3d(LMs_df_xyz_aligned_yx_fin_trans_x %>%
-  #          select(x, y, z),
-  #        texts = LMs_df_xyz_aligned_yx_fin_trans_x$ID)
-  
-  # get midpoint between eyes
-  eyes_mid <- c(mean(facet_positions_df_xyz_aligned_yx_fin_trans_x_LR$x),
-                mean(facet_positions_df_xyz_aligned_yx_fin_trans_x_LR$y),
-                mean(facet_positions_df_xyz_aligned_yx_fin_trans_x_LR$z))
-  
-  # combine dfs again
-  all_combined_yx_fin_trans_x_LR <- rbind(facet_positions_df_xyz_aligned_yx_fin_trans_x_LR,
-                                          LMs_df_xyz_aligned_yx_fin_trans_x) # %>% 
-                                            # mutate(point_col = NA)) 
-  
-  # # translate everything in y and z so that midpoint between eyes is at 0,0,0
-  all_combined_yx_fin_trans_xyz_LR <- all_combined_yx_fin_trans_x_LR %>%
-    mutate(y = y-eyes_mid[2],
-           z = z-eyes_mid[3])
-  
-  # plot3d(all_combined_yx_fin_trans_xyz_LR, aspect = "iso")
-  # text3d(all_combined_yx_fin_trans_xyz_LR %>%
-  #          select(x, y, z),
-  #        texts = all_combined_yx_fin_trans_xyz_LR$ID)
-  
-  # rotate around y if upside down
-  z_dist <- all_combined_yx_fin_trans_xyz_LR %>% 
-    filter(ID == "innermost_eye_L") %>% 
-    pull(z) -
-    all_combined_yx_fin_trans_xyz_LR %>% 
-    filter(ID == "clypeolabral_suture") %>% 
-    pull(z) 
-  if(z_dist < 0){
-    all_combined_yx_fin_trans_xyz_LR_rot_y <- rotate_point_cloud(point_cloud = all_combined_yx_fin_trans_xyz_LR,
-                                                                 angles = c(0,180,0))
-    
-    # # rotate normals
-    # all_combined_yx_fin_trans_xyz_LR_rot_y_facet_normals <- all_combined_yx_fin_trans_xyz_LR_rot_y %>% 
-    #   filter(!is.na(norm.x)) %>% 
-    #   select(ID,norm.x,norm.y,norm.z)
-    # colnames(all_combined_yx_fin_trans_xyz_LR_rot_y_facet_normals) <- c("ID", "x","y","z")
-    # all_combined_yx_fin_trans_xyz_LR_rot_y_facet_normals <- rotate_point_cloud(all_combined_yx_fin_trans_xyz_LR_rot_y_facet_normals, 
-    #                                                                            angles = c(0,180,0))
-    # colnames(all_combined_yx_fin_trans_xyz_LR_rot_y_facet_normals) <- c("norm.x","norm.y","norm.z","ID")
-    # 
-    # # get rotated normals into all_combined_yx_fin_trans_xyz_LR_rot_y
-    # all_combined_yx_fin_trans_xyz_LR_rot_y <- all_combined_yx_fin_trans_xyz_LR_rot_y %>% 
-    #   select(-c(norm.x, norm.y, norm.z)) %>% 
-    #   left_join(all_combined_yx_fin_trans_xyz_LR_rot_y_facet_normals, by = "ID")
-  } else{
-    all_combined_yx_fin_trans_xyz_LR_rot_y <- all_combined_yx_fin_trans_xyz_LR
+  # Helper functions
+  normalize <- function(v) {
+    magnitude <- sqrt(sum(v^2))
+    if (magnitude == 0) stop("Cannot normalize a zero-length vector.")
+    v / magnitude
   }
   
-  # plot3d(all_combined_yx_fin_trans_xyz_LR_rot_y, aspect = "iso")
-  # text3d(all_combined_yx_fin_trans_xyz_LR_rot_y %>%
-  #          select(x, y, z),
-  #        texts = all_combined_yx_fin_trans_xyz_LR_rot_y$ID)
+  cross_product <- function(u, v) c(
+    u[2] * v[3] - u[3] * v[2],
+    u[3] * v[1] - u[1] * v[3],
+    u[1] * v[2] - u[2] * v[1]
+  )
   
-  # rotate around z if front is back
-  y_dist <- all_combined_yx_fin_trans_xyz_LR %>% 
-    filter(ID == "clypeolabral_suture") %>% 
-    pull(y) -
-    all_combined_yx_fin_trans_xyz_LR %>% 
-    filter(ID == "foramen_dorsal") %>% 
-    pull(y) 
-  
-  if(y_dist > 0){
-    all_combined_yx_fin_trans_xyz_LR_rot_yz <- rotate_point_cloud(point_cloud = all_combined_yx_fin_trans_xyz_LR_rot_y,
-                                                                  angles = c(0,0,180))
-    
-    # # rotate normals
-    # all_combined_yx_fin_trans_xyz_LR_rot_yz_facet_normals <- all_combined_yx_fin_trans_xyz_LR_rot_yz %>% 
-    #   filter(!is.na(norm.x)) %>% 
-    #   select(ID,norm.x,norm.y,norm.z)
-    # colnames(all_combined_yx_fin_trans_xyz_LR_rot_yz_facet_normals) <- c("ID", "x","y","z")
-    # all_combined_yx_fin_trans_xyz_LR_rot_yz_facet_normals <- rotate_point_cloud(all_combined_yx_fin_trans_xyz_LR_rot_yz_facet_normals, 
-    #                                                                             angles = c(0,0,180))
-    # colnames(all_combined_yx_fin_trans_xyz_LR_rot_yz_facet_normals) <- c("norm.x","norm.y","norm.z","ID")
-    # 
-    # # get rotated normals into all_combined_yx_fin_trans_xyz_LR_rot_y
-    # all_combined_yx_fin_trans_xyz_LR_rot_y <- all_combined_yx_fin_trans_xyz_LR_rot_y %>% 
-    #   select(-c(norm.x, norm.y, norm.z)) %>% 
-    #   left_join(all_combined_yx_fin_trans_xyz_LR_rot_yz_facet_normals, by = "ID")
-    
-  } else{
-    all_combined_yx_fin_trans_xyz_LR_rot_yz <- all_combined_yx_fin_trans_xyz_LR_rot_y
+  rotate_matrix <- function(df, axis, angle) {
+    ux <- axis[1]; uy <- axis[2]; uz <- axis[3]
+    cos_a <- cos(angle); sin_a <- sin(angle)
+    R <- matrix(c(
+      cos_a + ux^2 * (1 - cos_a),      ux * uy * (1 - cos_a) - uz * sin_a, ux * uz * (1 - cos_a) + uy * sin_a,
+      uy * ux * (1 - cos_a) + uz * sin_a, cos_a + uy^2 * (1 - cos_a),      uy * uz * (1 - cos_a) - ux * sin_a,
+      uz * ux * (1 - cos_a) - uy * sin_a, uz * uy * (1 - cos_a) + ux * sin_a, cos_a + uz^2 * (1 - cos_a)
+    ), nrow = 3, byrow = TRUE)
+    t(apply(df, 1, function(p) R %*% p))
   }
   
-  # plot3d(all_combined_yx_fin_trans_xyz_LR_rot_yz, aspect = "iso")
-  # text3d(all_combined_yx_fin_trans_xyz_LR_rot_yz %>%
-  #          select(x, y, z),
-  #        texts = all_combined_yx_fin_trans_xyz_LR_rot_yz$ID)
+  # Extract df
+  A <- df %>%
+    slice(line_points_y_ind[1]) %>%
+    select(x,y,z) %>%
+    as.numeric() # as.numeric(df[1, c("x", "y", "z")])
+  B <- df %>%
+    slice(line_points_y_ind[2]) %>%
+    select(x,y,z) %>%
+    as.numeric() # as.numeric(df[2, c("x", "y", "z")])
+  C <- df %>%
+    slice(line_points_x_ind[1]) %>%
+    select(x,y,z) %>%
+    as.numeric() # as.numeric(df[3, c("x", "y", "z")])
+  D <-  df %>%
+    slice(line_points_x_ind[2]) %>%
+    select(x,y,z) %>%
+    as.numeric() # as.numeric(df[4, c("x", "y", "z")])
   
-  return(all_combined_yx_fin_trans_xyz_LR_rot_yz)
+  # Step 1: Translate all df so A is at the origin
+  translate <- function(point, origin) point - origin
+  translated_df <- as.matrix(df[, c("x", "y", "z")]) %>%
+    apply(1, translate, origin = A) %>%
+    t()
+  
+  # points3d(translated_df)
+  
+  # Step 2: Rotate so AB aligns with the Y-axis
+  AB <- normalize(translated_df[line_points_y_ind[2],])  # Vector AB
+  y_axis <- c(0, 1, 0)
+  
+  if (!all(abs(AB - y_axis) < 1e-8)) {
+    # Find the axis of rotation (cross product of AB and Y-axis)
+    rotation_axis_1 <- normalize(cross_product(AB, y_axis))
+    angle_1 <- acos(sum(AB * y_axis))
+    
+    # Apply rotation to align AB with the Y-axis
+    translated_df <- rotate_matrix(translated_df, rotation_axis_1, angle_1)
+  }
+  
+  # Step 3: Rotate around the Y-axis so C and D have the same z-coordinate
+  C <- translated_df[line_points_x_ind[1],]
+  D <- translated_df[line_points_x_ind[2],]
+  delta_z <- C[3] - D[3]  # Difference in z-coordinates
+  delta_x <- D[1] - C[1]  # Difference in x-coordinates
+  
+  angle_2 <- atan2(delta_z, delta_x)  # Angle to align z-coordinates of C and D
+  
+  # Rotate around the Y-axis
+  rotation_axis_2 <- c(0, 1, 0)
+  final_df <- rotate_matrix(translated_df, rotation_axis_2, -angle_2)
+  
+  # Convert back to tibble format
+  final_df_tibble <- as_tibble(final_df, .name_repair = "unique")
+  colnames(final_df_tibble) <- c("x", "y", "z")
+  
+  # points3d(final_df_tibble)
+  
+  if(final_df_tibble %>%
+     slice(line_points_x[1]) %>%
+     pull(x) < final_df_tibble %>%
+     slice(line_points_x[2]) %>%
+     pull(x)) {
+    final_df_tibble <- rotate_point_cloud(final_df_tibble, angles = c(0,180,0))
+  }
+  
+  return(final_df_tibble)
 }
 
 #' Align 3D Point Cloud to Global Axis
@@ -415,10 +209,10 @@ rotate_point_cloud <- function(point_cloud, angles) {
   rotated_cloud_xyz <- as_tibble(t(rot_matrix %*% t(point_cloud_xyz)))
   colnames(rotated_cloud_xyz) <- c("x", "y", "z")
   
-  rotated_cloud_xyz$ID <- point_cloud$ID
-  rotated_cloud_xyz <- rotated_cloud_xyz %>% 
-    left_join(point_cloud %>% 
-                select(-c(x,y,z)), by="ID")
+  # rotated_cloud_xyz$ID <- point_cloud$ID
+  # rotated_cloud_xyz <- rotated_cloud_xyz %>% 
+  #   left_join(point_cloud %>% 
+  #               select(-c(x,y,z)), by="ID")
   
   # # extract single dfs
   # LMS_df_rot_fin <- rotated_cloud_xyz %>% 
@@ -431,7 +225,7 @@ rotate_point_cloud <- function(point_cloud, angles) {
   # # spheres3d(facet_positions_translated_rot_fin %>% 
   # #             select(x, y, z), 
   # #           col="red", radius=20, alpha = 1)
-    
+  
   return(rotated_cloud_xyz)
 }
 
