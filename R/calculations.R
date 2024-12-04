@@ -48,29 +48,6 @@ calc_delta.phi <- function(curr.lens, curr.partner, type){
 }
 
 
-#' Generates a random line in 3D
-#'
-#' Rotates 3D point cloud according to one defined vector so that this vector
-#' is aligned to one of the global coordinate system axes.
-#'
-#' @param df A tibble containing coordinates in columns `x, y, z`.
-#' @param line_points A 2x3 tibble containing coordinates of line to align the 
-#' point cloud to. Must contain one row per point and columns `x, y, z`.
-#' @param axis A character string defining the global axis to align to. Must be 
-#' `x`, `y`, or `z`.
-#' @return Returns a tibble with the aligned coordinates in columns `x, y, z`.
-#'
-#' @export
-#' @examples
-#' xxx: add example and change above descsriptionand parameters
-#'
-generate_random_line <- function() {
-  point <- runif(3, min = -10, max = 10)
-  direction <- runif(3, min = -1, max = 1)
-  direction <- direction / sqrt(sum(direction^2))  # Normalize direction vector
-  list(point = point, direction = direction)
-}
-
 #' Finds the point closest to multiple lines
 #'
 #' Rotates 3D point cloud according to one defined vector so that this vector

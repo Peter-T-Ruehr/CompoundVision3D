@@ -21,7 +21,8 @@ Imports:
 	reshape2,
 	rgl,
 	stats,
-	tidyr
+	tidyr,
+	forceR
 Depends: 
     R (>= 4.0)
 VignetteBuilder: knitr
