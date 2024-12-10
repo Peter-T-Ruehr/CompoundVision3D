@@ -5,13 +5,25 @@
 #' find good threshold - choose x,y, x,z or other dimension combinations to get reasonable plots
 #' @export
 find_threshold <- function(df = local_heights,
-                           column1 = "x",
-                           column2 = "y",
+                           column1 = NULL,
+                           column2 = NULL,
                            height_column,
                            min_threshold = 1,
                            max_treshold = 2.5, 
                            trials = 12,
                            plot_file = NULL){
+  
+  # if undefined, take the columns with the highest ranges for plotting
+  if(is.null(column1)){
+    column_ranges <- c(diff(range(df$x)), diff(range(df$y)), diff(range(df$z)))
+    names(column_ranges) <- c("x","y","z")
+    column1 <- names(sort(column_ranges))[2]
+  }
+  if(is.null(column2)){
+    column_ranges <- c(diff(range(df$x)), diff(range(df$y)), diff(range(df$z)))
+    names(column_ranges) <- c("x","y","z")
+    column2 <- names(sort(column_ranges))[3]
+  }
   
   par(mfrow=c(3,4))
   for(curr_thrsh in round(seq(min_threshold, max_treshold, length.out = trials),2)){
@@ -40,7 +52,8 @@ find_threshold <- function(df = local_heights,
            col = "black",
            pch=16,
            cex = .1,
-           main=paste0(round(curr_thrsh,2), "; n = ", nrow(df_tmp)))
+           main=paste0(round(curr_thrsh,2), "; n = ", nrow(df_tmp)),
+           asp = 1)
     }
     dev.off()
     par(mfrow=c(1,1))
@@ -177,70 +190,73 @@ find_facets_rough <- function(df,
 #' @examples
 #' xxx: add example
 #' 
+
 find_facets_fine <- function(df,
                              cols_to_use,
                              h_min = NULL,
                              h_max = NULL,
                              h_final = NULL,
                              n_steps = 100,
-                             plot_file = NULL){
+                             plot_file = NULL,
+                             verbose = FALSE){
   
   # # testing
   # df = rough_peaks
   # cols_to_use = 1:3
-  # h_min = 22.448
-  # h_max = 10.002
-  # h_final = 15.013
+  # h_min = NULL
+  # h_max = NULL
+  # h_final = NULL
   # n_steps = 100
-  # plot_file = file.path(fine_clusters_folder,
+  # plot_file = file.path(facet_candidate_folder,
   #                       gsub("csv$", "pdf", curr_filename_out))
-  
+  # verbose = TRUE
   start_time <- Sys.time()
   # dplyr NULLs
   ID <- x <- y <- z <- cluster <- Var1 <- Var2 <- '.' <- NULL
   
   # Agglomerative clustering
   # Dissimilarity matrix
-  message("Calculating distance matrix...")
+  if(verbose == TRUE){
+    cat("Calculating distance matrix...", "\n")
+  }
   d <- dist(df[,cols_to_use], method = "euclidean")
   hc1 <- hclust(d, method = "complete" )
   
   if(is.null(h_min) | is.null(h_max)){
     # Hierarchical clustering using Complete Linkage
-    message("Calculating and plotting dendrogram of hierarchichal clustering...")
+    
+    if(verbose == TRUE){
+      cat("Calculating and plotting dendrogram of hierarchichal clustering...", "\n")
+    }
     
     # Plot the obtained dendrogram
-    message("select minimum and maximum cut-off points on y axis for first trial.")
-    message("Only select two points, the script will continue automatically.")
+    cat("select minimum and maximum cut-off points on y axis for first trial.", "\n")
+    cat("Only select two points, the script will continue automatically.", "\n")
     plot(hc1, cex = 0.6, hang = -1, 
-         labels = FALSE, xlab = "")
+         xlab = "", 
+         main = "Hierarchical Clustering", 
+         sub = "",
+         labels = FALSE)
     h.cutoff.df <- locator(type = "n", n=2)
     h_min = h.cutoff.df$y[1]
     h_max = h.cutoff.df$y[2]
     
-    message(paste0(round(h_min,3), "; ", round(h_max, 3),"."))
-    # AntVisTab$cutoffs_rough[AntVisTab$AV == curr_AV & AntVisTab$eye == curr_eye] <- paste0(round(h_min,3), ";", round(h_max, 3))
-    
-    # # save AntVisTab with search diameters
-    # write.xlsx(x = as.data.frame(AntVisTab), file = "./data/AntVisTab_with_cutoffs.xlsx", 
-    #            showNA = FALSE, row.names = FALSE)
-    
+    if(verbose == TRUE){
+      cat("Cutoff values:", paste0(round(h_min,3), "; ", round(h_max, 3),"."), "\n")
+    }
   } else {
-    message(paste0("Cut-offs defined as: ", round(h_min,3), "; ", round(h_max, 3),"."))
-    # message("Adding cut-off values to table.")
-    # AntVisTab$cutoffs_rough[AntVisTab$AV == curr_AV & AntVisTab$eye == curr_eye] <- paste0(round(h_min,3), ";", round(h_max, 3))
-    # 
-    # # save AntVisTab with search diameters
-    # write.xlsx(x = as.data.frame(AntVisTab), file = "./data/AntVisTab_with_cutoffs.xlsx", 
-    #            showNA = FALSE, row.names = FALSE)
+    cat(paste0("Cut-offs defined as: ", round(h_min,3), "; ", round(h_max, 3),"."), "\n")
   }
   
-  
-  print(paste0("Min.: ", round(h_min,3), "; max.: ", round(h_max, 3)))
+  if(verbose == TRUE){
+    cat(paste0("Min.: ", round(h_min,3), "; max.: ", round(h_max, 3)), "\n")
+  }
   # n_steps = 200
   names = c("h", "ommatidia.no")
   
-  message("Finding clusters for ", n_steps, " points between cut-off values.")
+  if(verbose == TRUE){
+    cat("Finding clusters for", n_steps, "points between cut-off values.", "\n")
+  }
   ommatidia.no.df = as_tibble(setNames(data.frame(matrix(nrow = 0, 
                                                          ncol = length(names))), 
                                        names))
@@ -266,12 +282,12 @@ find_facets_fine <- function(df,
   par(mfrow=c(1,1))
   
   if(is.null(h_final)){
-    message("Select cut-off point on x-axis.")
+    cat("Select cut-off point on x-axis.", "\n")
     h_final <- locator(type = "n", n=1)
     print(paste0("Final cut-off chosen: ", h_final$x[length(h_final$x)]))
   } else if(is.numeric(h_final)){
     h_final <- data.frame(x=h_final)
-    message(paste0("Final cut-off value defined as: ", round(h_final,3),"."))
+    cat(paste0("Final cut-off value defined as: ", round(h_final,3),"."), "\n")
   }
   
   
@@ -286,8 +302,8 @@ find_facets_fine <- function(df,
     mutate(cluster = clusters.fin) %>% 
     group_by(cluster) %>% 
     dplyr::summarize(x = median(!!as.symbol(colnames(df)[cols_to_use[1]])),
-              y = median(!!as.symbol(colnames(df)[cols_to_use[2]])),
-              z = median(!!as.symbol(colnames(df)[cols_to_use[3]]))) %>% 
+                     y = median(!!as.symbol(colnames(df)[cols_to_use[2]])),
+                     z = median(!!as.symbol(colnames(df)[cols_to_use[3]]))) %>% 
     select(-cluster)
   
   # create distance matrix of all clusters to each other
@@ -311,7 +327,9 @@ find_facets_fine <- function(df,
     mutate(ID = 1:nrow(.))
   
   if(!is.null(plot_file)){
-    print(paste0("Saving plots as ", plot_file))
+    if(verbose == TRUE){
+      cat(paste0("Saving plots as ", plot_file), "\n")
+    }
     
     
     # PDF plots
@@ -327,9 +345,16 @@ find_facets_fine <- function(df,
     # widths = c(2, 1))     # Widths of the two columns
     # layout.show(4)
     # tree
-    plot(hc1, cex = 0.6, hang = -1)
+    plot(hc1, 
+         cex = 0.6, 
+         hang = -1, 
+         xlab = paste0("Cutoff-values (blue); ", round(h_min,2), " & ", round(h_max,2)), 
+         main = "Hierarchical Clustering", 
+         sub = "",
+         labels = FALSE)
     abline(a=h_min, b=0, col="blue", lty=2)
     abline(a=h_max, b=0, col="blue", lty=2)
+    
     
     # curve and differences
     plot(ommatidia.no.df$h, ommatidia.no.df$ommatidia.no) # , ylim = c(0,max(ommatidia.no.df$ommatidia.no))
@@ -349,13 +374,17 @@ find_facets_fine <- function(df,
     # par(mfrow=c(1,1))
     dev.off()
   }
-  
-  print(paste0("Found ", nrow(df.fin.clean), " facet center candiates. Check 3D plot device."))
-  end_time <- Sys.time()
-  print(end_time - start_time)
+  if(verbose == TRUE){
+    cat(paste0("Found ", nrow(df.fin.clean), " facet center candiates. Check 3D plot device."), "\n")
+    
+    end_time <- Sys.time()
+    cat(end_time - start_time, "\n")
+  }
   
   # plot eye in 3D to get overview
-  message("Plotting 'SEM'-coloured eye in RGL 3D window. Check it out to get overview.")
+  if(verbose == TRUE){
+    cat("Plotting 'SEM'-coloured eye in RGL 3D window. Check it out to get overview.", "\n")
+  }
   plot3d(df %>% 
            select(all_of(cols_to_use)), 
          # col = local_heights$local_height_col_log, 

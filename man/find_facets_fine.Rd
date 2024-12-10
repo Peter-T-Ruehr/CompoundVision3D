@@ -11,7 +11,8 @@ find_facets_fine(
   h_max = NULL,
   h_final = NULL,
   n_steps = 100,
-  plot_file = NULL
+  plot_file = NULL,
+  verbose = FALSE
 )
 }
 \arguments{

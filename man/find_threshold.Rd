@@ -6,8 +6,8 @@
 \usage{
 find_threshold(
   df = local_heights,
-  column1 = "x",
-  column2 = "y",
+  column1 = NULL,
+  column2 = NULL,
   height_column,
   min_threshold = 1,
   max_treshold = 2.5,
