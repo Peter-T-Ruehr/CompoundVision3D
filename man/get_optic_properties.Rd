@@ -4,7 +4,7 @@
 \alias{get_optic_properties}
 \title{Get optic parameter approximations}
 \usage{
-get_optic_properties(df, cores = 1, verbose = FALSE)
+get_optic_properties(df, cores = 1, plot_file = NULL, verbose = FALSE)
 }
 \arguments{
 \item{df}{A tibble containing facet coordinates in columns \verb{x, y, z}.}

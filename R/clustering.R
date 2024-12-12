@@ -191,7 +191,7 @@ find_facets_rough <- function(df,
 #' xxx: add example
 #' 
 
-find_facets_fine <- function(df,
+find_facet_canidates <- function(df,
                              cols_to_use = 1:3,
                              h_min = NULL,
                              h_max = NULL,

@@ -220,7 +220,7 @@ distance_3D <- function(point1,
   distance <- sqrt(sum_of_squares)
   
   if(verbose == TRUE){
-    print("All done!")
+    cat("All done!\n")
   }
   return(distance)
 }
@@ -246,27 +246,20 @@ distance_3D <- function(point1,
 find_neighbours <- function(df,
                             facet_size,
                             cores = 1,
+                            plot_file = NULL,
                             verbose = FALSE){
   require(doParallel)
   
   # # testing
   # df = eye_L
-  # # # reduce facet_distance_df to 3 times the facet diameter
-  # facet_size <- search_diameters %>%
-  #   filter(CV == curr_CV) %>%
-  #   filter(!is.na(search_diam)) %>%
-  #   pull(search_diam) / 3
-  # facet_size = 12
+  # facet_size <- curr_facet_estimate
   # cores = 12
+  # plot_file = file.path(neighbors_and_sizes,
+  #                       gsub("_facets_LMs_combined.csv", "_neighbour_and_size_data.pdf", curr_file))
   # verbose = TRUE
   
-  
-  # add ID columne
-  # df <- df %>% 
-  #   mutate(facet = row_number())
-  
   if(verbose == TRUE){
-    print("Creating distance matrix...")
+    cat("Creating distance matrix...\n")
   }
   facet_distance_matrix <- dist(df %>% 
                                   select(x,y,z),
@@ -281,16 +274,12 @@ find_neighbours <- function(df,
   
   colnames(facet_distance_df_all) <- c("facet_1", "facet_2", "distance")
   
-  # facet_distance_df_all %>% 
-  #   arrange(distance) %>% 
-  #   head()
-  
   facet_distance_df <- facet_distance_df_all %>% 
     filter(distance <= facet_size * 3)
   
   # calculate facet sizes
   if(verbose == TRUE){
-    print(paste0("Calculating temporary sizes for ", nrow(df), " facets according to their closest 2 neighbours (multi-threaded)..."))
+    cat(paste0("Calculating temporary sizes for ", nrow(df), " facets according to their closest 2 neighbours (multi-threaded)...\n"))
   }
   
   registerDoParallel(cores)
@@ -317,8 +306,6 @@ find_neighbours <- function(df,
                       }
   stopImplicitCluster()
   
-  # hist(df_sizes)
-  
   # remove facets where no size could have been calculated
   zero_sizes <- which(df_sizes==0)
   if(length(zero_sizes) > 0){
@@ -331,7 +318,7 @@ find_neighbours <- function(df,
   
   
   if(verbose == TRUE){
-    print("Finding six closest facets (multi-threaded)...")
+    cat("Finding six closest facets (multi-threaded)...\n")
   }
   
   facet=1
@@ -362,7 +349,7 @@ find_neighbours <- function(df,
   # find neighbors that are closer than median.size.tmp to current facet and remove them from facet.infos
   # but keep at least 3 neighbours
   if(verbose == TRUE){
-    print("Filtering close neighbours (multi-threaded)...")
+    cat("Filtering close neighbours (multi-threaded)...\n")
   }
   
   # xxx: this should be  parameter
@@ -412,7 +399,7 @@ find_neighbours <- function(df,
   
   # find facet sizes according to their neighbors
   if(verbose == TRUE){
-    print("Finding facet sizes according to their neighbours (multi-threaded)...")
+    cat("Finding facet sizes according to closest neighbours (multi-threaded)...\n")
   }
   
   registerDoParallel(cores)
@@ -443,12 +430,99 @@ find_neighbours <- function(df,
   
   # hist(eye_sizes$size)
   
-  df$size_final = eye_sizes %>% pull(size)
+  # add sizes to df
+  df <- df %>% 
+    select(-size) %>% 
+    left_join(eye_sizes %>% 
+                select(facet, size),
+              by="facet")
   
-  return(df %>% 
-           select(-c(size)) %>% 
-           rename(size = size_final) %>% 
-           select(facet, neighbours, number.of.neighbours, size))
+  # cleaning
+  df <- df %>% 
+    # select(-c(size)) %>% 
+    # rename(size = size_final) %>%
+    select(facet, neighbours, number.of.neighbours, size)
+  
+  # calculate mean of sizes according to facet neighbors
+  if(verbose == TRUE){
+    cat("Calculating mean sizes according to all their actual neighbors...\n")
+  }
+  
+  df$mean_size <- NA
+  for(l in 1:nrow(df)){
+    curr_facet <- df$facet[l]
+    curr_neighbours <- as.numeric(str_split(df$neighbours[df$facet == curr_facet], pattern = "; ")[[1]])
+    
+    # get their sizes
+    curr_mean_size <- df %>% 
+      filter(facet %in% curr_neighbours) %>% 
+      summarise(mean_size = mean(size)) %>% 
+      pull(mean_size)
+    
+    df$mean_size[l] <- curr_mean_size
+    
+  }
+  
+  if(verbose == TRUE){
+    cat("Plotting infos to plot device...\n")
+  }
+  par(mfrow = c(3,1))
+  hist(df$number.of.neighbours, 
+       breaks = c(0:7),
+       main = "Number of neighbours",
+       xlab = "Number of neighbours")
+  hist(df$size, 
+       breaks = seq(min(df$size), max(df$size), 
+                    length.out=16),
+       main = "Raw facet sizes",
+       xlab = "Facet size (um)")
+  hist(df$mean_size, 
+       breaks = seq(min(df$mean_size), max(df$mean_size), 
+                    length.out=16),
+       main = "Mean facet sizes",
+       xlab = "Facet size (um)")
+  par(mfrow = c(1,1))
+  
+  
+  if(!is.null(plot_file)){
+    if(verbose == TRUE){
+      cat("Plotting infos to", plot_file, "\n")
+    }
+    
+    # PDF plots
+    pdf(plot_file, # , today()
+        onefile = TRUE, paper = "a4")
+    
+    par(mfrow = c(3,1))
+    hist(df$number.of.neighbours, 
+         breaks = c(0:7),
+         main = "Number of neighbours",
+         xlab = "Number of neighbours")
+    hist(df$size, 
+         breaks = seq(min(df$size), max(df$size), 
+                      length.out=16),
+         main = "Raw facet sizes",
+         xlab = "Facet size (um)")
+    hist(df$mean_size, 
+         breaks = seq(min(df$mean_size), max(df$mean_size), 
+                      length.out=16),
+         main = "Mean facet sizes",
+         xlab = "Facet size (um)")
+    par(mfrow = c(1,1))
+    
+    dev.off()
+  }
+  
+  # remove temporary size column
+  df <- df %>% 
+    select(-size) %>% 
+    dplyr::rename(size = mean_size)
+  
+  if(verbose == TRUE){
+    cat("All done!\n")
+  }
+  
+  return(df)
 }
 
 
@@ -470,6 +544,7 @@ find_neighbours <- function(df,
 #'
 get_facet_normals <- function(df,
                               cores = 1,
+                              plot_file = NULL,
                               verbose = FALSE){
   
   require(parallel)
@@ -480,14 +555,15 @@ get_facet_normals <- function(df,
   # df = eye_L
   # cores = 12
   # verbose = TRUE
+  # plot_file = file.path(neighbors_and_sizes,
+  #                       gsub("_facets_LMs_combined.csv", "_normal_data.pdf", curr_file))
   
-  # get mean point between eyes
+  # get mean coordinate of facets
   eyes_mean <- df %>% 
     mutate(mean_x = mean(x),
            mean_y = mean(y),
            mean_z = mean(z)) %>%
-    distinct(mean_x, mean_y, mean_z) %>% 
-    mutate(mean_x = mean_x/2)
+    distinct(mean_x, mean_y, mean_z) 
   
   
   # plot3d(df %>%
@@ -497,6 +573,7 @@ get_facet_normals <- function(df,
   #          select(x,y,z),
   #        texts = df %>%
   #          pull(facet))
+  # points3d(eyes_mean, size=20)
   
   
   # remove neighbours that are not part of df anymore
@@ -507,7 +584,7 @@ get_facet_normals <- function(df,
   counter <- 0
   while(curr_difference != 0){
     counter <- counter+1
-    # print(counter)
+    # cat(counter, "\n)
     # for(m in 1:2){
     l=202
     facets_to_remove <- c()
@@ -518,7 +595,7 @@ get_facet_normals <- function(df,
       neighbours_to_keep <- curr_neighbours[which(curr_neighbours %in% df$facet)]
       neighbours_to_remove <- curr_neighbours[which(curr_neighbours %in% df$facet == FALSE)]
       facets_to_remove <- c(facets_to_remove, neighbours_to_remove)
-      # if(length(neighbours_to_remove > 0)) print(neighbours_to_remove)
+      # if(length(neighbours_to_remove > 0)) cat(neighbours_to_remove,"\n")
       
       df$neighbours[l] <- paste(neighbours_to_keep, collapse = "; ")
       df$number.of.neighbours[l] <- length(neighbours_to_keep)
@@ -534,8 +611,8 @@ get_facet_normals <- function(df,
   
   # calculate facet normals according to their neighbours
   if(verbose == TRUE){
-    print(paste0("Calculating ", nrow(df), " facet normals according to their neighbors' coordinates (multi-threaded)..."))
-    print(paste0("Thas takes a while, because ", nrow(df), " x ", sum(df$number.of.neighbours), " = ", nrow(df)*sum(df$number.of.neighbours), " will be performed."))
+    cat(paste0("Calculating ", nrow(df), " facet normals according to their neighbors' coordinates (multi-threaded)...\n"))
+    cat(paste0("This may take a while, because ", nrow(df), " x ", sum(df$number.of.neighbours), " = ", nrow(df)*sum(df$number.of.neighbours), " calculations will be performed.\n"))
   }
   
   
@@ -577,6 +654,8 @@ get_facet_normals <- function(df,
                           
                           # calculate normal from eye center to current facet
                           center_vector <- coords_facet %>% unlist() - eyes_mean %>% unlist()
+                          
+                          # normalize center_vector
                           center_vector <- center_vector / sqrt(sum(center_vector^2))
                           # print(center_vector)
                           
@@ -661,7 +740,7 @@ get_facet_normals <- function(df,
                                                             C = coords_neighbour_2,
                                                             normalize = TRUE)
                             
-                            # check if facet normal points in same direction as triangle normal
+                            # # check if facet normal points in same direction as triangle normal
                             # print(curr_normal)
                             # print(center_vector)
                             
@@ -691,7 +770,59 @@ get_facet_normals <- function(df,
   stopCluster(cl) 
   
   if(verbose == TRUE){
-    print("All done!")
+    cat("Plotting infos to plot device...\n")
+  }
+  par(mfrow = c(3,1))
+  hist(df_normals$norm.x, 
+       breaks = seq(min(df_normals$norm.x), max(df_normals$norm.x), 
+                    length.out=16),
+       main = "x",
+       xlab = "normals x")
+  hist(df_normals$norm.y, 
+       breaks = seq(min(df_normals$norm.y), max(df_normals$norm.y), 
+                    length.out=16),
+       main = "y",
+       xlab = "normals y")
+  hist(df_normals$norm.z, 
+       breaks = seq(min(df_normals$norm.z), max(df_normals$norm.z), 
+                    length.out=16),
+       main = "z",
+       xlab = "normals z")
+  par(mfrow = c(1,1))
+  
+  
+  if(!is.null(plot_file)){
+    if(verbose == TRUE){
+      cat("Plotting infos to", plot_file, "\n")
+    }
+    
+    # PDF plots
+    pdf(plot_file, # , today()
+        onefile = TRUE, paper = "a4")
+    
+    par(mfrow = c(3,1))
+    hist(df_normals$norm.x, 
+         breaks = seq(min(df_normals$norm.x), max(df_normals$norm.x), 
+                      length.out=16),
+         main = "x",
+         xlab = "normals x")
+    hist(df_normals$norm.y, 
+         breaks = seq(min(df_normals$norm.y), max(df_normals$norm.y), 
+                      length.out=16),
+         main = "y",
+         xlab = "normals y")
+    hist(df_normals$norm.z, 
+         breaks = seq(min(df_normals$norm.z), max(df_normals$norm.z), 
+                      length.out=16),
+         main = "z",
+         xlab = "normals z")
+    par(mfrow = c(1,1))
+    
+    dev.off()
+  }
+  
+  if(verbose == TRUE){
+    cat("All done!\n")
   }
   
   return(df_normals)
@@ -717,6 +848,7 @@ get_facet_normals <- function(df,
 #'
 get_optic_properties <- function(df,
                                  cores = 1,
+                                 plot_file = NULL,
                                  verbose = FALSE){
   
   require(doParallel)
@@ -724,10 +856,12 @@ get_optic_properties <- function(df,
   # # testing
   # df = eye_L
   # cores = 12
+  # plot_file = file.path(neighbors_and_sizes,
+  #                       gsub("_facets_LMs_combined.csv", "_optics_parameters.pdf", curr_file))
   # verbose = TRUE
   
   if(verbose == TRUE){
-    print(paste0("Calculating IF angles, P, and CPD for ", nrow(df), " facets (multi-threaded)..."))
+    cat(paste0("Calculating IF angles, P, v, and CPD for ", nrow(df), " facets (multi-threaded)...\n"))
   }
   
   registerDoParallel(cores)
@@ -743,7 +877,7 @@ get_optic_properties <- function(df,
                             
                             if(all(curr_facet_normal != 0)){
                               
-                              # get neighbouring facetes without NAs
+                              # get neighbouring facets without NAs
                               curr_facet_neighbours <- as.numeric(
                                 str_split(df %>%
                                             filter(facet==facet_no) %>%
@@ -774,7 +908,7 @@ get_optic_properties <- function(df,
                               # df$delta_phi.rad[l] <- mean(delta_phis.rad)
                               # df$delta_phi.deg[l] <- mean(delta_phis.deg)
                               
-                              curr_P <- df$mean_size[as.numeric(as.character(facet_no))] * mean(delta_phis.rad)  * (sqrt(3)/2) # eye parameter Snyder 1977. Brigitte: (sqrt(3)/2) *
+                              curr_P <- df$size[as.numeric(as.character(facet_no))] * mean(delta_phis.rad)  * (sqrt(3)/2) # eye parameter Snyder 1977. Brigitte: (sqrt(3)/2) *
                               # sampling frequency calculated after Feller et al. 2021 as CPD. Snyder 1977 for hexagonal lattice of visual axes: 1/sqrt(3) *  mean(delta_phis.rad)
                               curr_CPD <- 1 / (2 * mean(delta_phis.rad))
                             } else{
@@ -788,5 +922,130 @@ get_optic_properties <- function(df,
                           }
   stopImplicitCluster()
   
-  return(dphi_Ps_CPDs)
+  # adding size and neighbour column to dphi_Ps_CPDs
+  dphi_Ps_CPDs <- dphi_Ps_CPDs %>% 
+    left_join(df %>% 
+                select(facet, size, neighbours), 
+              by = "facet")
+  
+  # adding neighbour column to dphi_Ps_CPDs
+  dphi_Ps_CPDs <- dphi_Ps_CPDs %>% 
+    left_join(df %>% 
+                select(facet, neighbours))
+  
+  
+  if(verbose == TRUE){
+    cat("Calculating mean IF angles...\n")
+  }
+  
+  # find mean IF angle for each facet
+  dphi_Ps_CPDs$mean.delta_phi.deg <- NA
+  q = 1
+  for(q in 1:nrow(dphi_Ps_CPDs)){
+    curr_facet <- dphi_Ps_CPDs$facet[q]
+    curr.neighbors <- as.numeric(
+      str_split(dphi_Ps_CPDs %>% 
+                  filter(facet==curr_facet) %>% 
+                  pull(neighbours), 
+                pattern = "; ")[[1]])
+    dphi_Ps_CPDs$mean.delta_phi.deg[q] <- dphi_Ps_CPDs %>% 
+      filter(facet %in% curr.neighbors) %>% 
+      summarise(mean = mean(delta_phi.deg)) %>% 
+      pull(mean)
+    # mean(dphi_Ps_CPDs$delta_phi.deg[curr.neighbors])
+  }
+  dphi_Ps_CPDs$mean.delta_phi.rad <- dphi_Ps_CPDs$mean.delta_phi.deg*pi/180
+  
+  # calculate P and CPD again with average angles per facet
+  if(verbose == TRUE){
+    cat("Calculating mean P and CPD angles...\n")
+  }
+  dphi_Ps_CPDs$P.mean <- NA
+  dphi_Ps_CPDs$CPD.mean <- NA
+  dphi_Ps_CPDs$v.mean <- NA
+  facet = 1
+  for(facet in 1:nrow(dphi_Ps_CPDs)){
+    dphi_Ps_CPDs$P.mean[facet] <- dphi_Ps_CPDs$size[facet] * 
+      dphi_Ps_CPDs$mean.delta_phi.rad[facet] * 
+      (sqrt(3)/2) # eye parameter Snyder 1977. Brigitte: (sqrt(3)/2) * 
+    dphi_Ps_CPDs$CPD.mean[facet] <- 1 / (2 * dphi_Ps_CPDs$mean.delta_phi.rad[facet]) 
+    dphi_Ps_CPDs$v.mean[facet] <- 1/(sqrt(3) * dphi_Ps_CPDs$mean.delta_phi.rad[facet]) 
+    # v = 1/(2 * delta.phi) (square lattice); v= 1/(sqrt(3) * delta.phi) (hexagonal lattice)
+    # CPD = 1/(2 * delta.phi) according to Feller Surf and Turf
+  }
+  
+  # # some corrections that are only needed for faulty eyes (so far only damselfly)
+  # dphi_Ps_CPDs$CPD.mean[which(dphi_Ps_CPDs$CPD.mean == Inf)] <- mean(dphi_Ps_CPDs$CPD.mean[which(dphi_Ps_CPDs$CPD.mean != Inf)])
+  
+  
+  if(verbose == TRUE){
+    cat("Plotting infos to plot device...\n")
+  }
+  par(mfrow = c(4,1))
+  hist(dphi_Ps_CPDs$mean.delta_phi.deg, 
+       breaks = seq(min(dphi_Ps_CPDs$mean.delta_phi.deg), max(dphi_Ps_CPDs$mean.delta_phi.deg), 
+                    length.out=16),
+       main = "Inter-facet angles",
+       xlab = "IF-angle (°)")
+  hist(dphi_Ps_CPDs$P.mean, 
+       breaks = seq(min(dphi_Ps_CPDs$P.mean), max(dphi_Ps_CPDs$P.mean), 
+                    length.out=16),
+       main = "Eye Paraneter (P)",
+       xlab = "P")
+  hist(dphi_Ps_CPDs$v.mean, 
+       breaks = seq(min(dphi_Ps_CPDs$v.mean), max(dphi_Ps_CPDs$v.mean), 
+                    length.out=16),
+       main = "Acuity (v)",
+       xlab = "v")
+  hist(dphi_Ps_CPDs$CPD.mean, 
+       breaks = seq(min(dphi_Ps_CPDs$CPD.mean), max(dphi_Ps_CPDs$CPD.mean), 
+                    length.out=16),
+       main = "Acuity (CPD)",
+       xlab = "CPD")
+  par(mfrow = c(1,1))
+  
+  if(!is.null(plot_file)){
+    if(verbose == TRUE){
+      cat("Plotting infos to", plot_file, "\n")
+    }
+    
+    # PDF plots
+    pdf(plot_file, # , today()
+        onefile = TRUE, paper = "a4")
+    
+    par(mfrow = c(4,1))
+    hist(dphi_Ps_CPDs$mean.delta_phi.deg, 
+         breaks = seq(min(dphi_Ps_CPDs$mean.delta_phi.deg), max(dphi_Ps_CPDs$mean.delta_phi.deg), 
+                      length.out=16),
+         main = "Inter-facet angles",
+         xlab = "IF-angle (°)")
+    hist(dphi_Ps_CPDs$P.mean, 
+         breaks = seq(min(dphi_Ps_CPDs$P.mean), max(dphi_Ps_CPDs$P.mean), 
+                      length.out=16),
+         main = "Eye Paraneter (P)",
+         xlab = "P")
+    hist(dphi_Ps_CPDs$v.mean, 
+         breaks = seq(min(dphi_Ps_CPDs$v.mean), max(dphi_Ps_CPDs$v.mean), 
+                      length.out=16),
+         main = "Acuity (v)",
+         xlab = "v")
+    hist(dphi_Ps_CPDs$CPD.mean, 
+         breaks = seq(min(dphi_Ps_CPDs$CPD.mean), max(dphi_Ps_CPDs$CPD.mean), 
+                      length.out=16),
+         main = "Acuity (CPD)",
+         xlab = "CPD")
+    par(mfrow = c(1,1))
+    
+    dev.off()
+  }
+  
+  
+  
+  return(dphi_Ps_CPDs %>% 
+           dplyr::select(facet, mean.delta_phi.deg, mean.delta_phi.rad, P.mean, v.mean, CPD.mean) %>% 
+           dplyr::rename(delta_phi.deg = mean.delta_phi.deg,
+                         delta_phi.rad = mean.delta_phi.rad,
+                         P = P.mean,
+                         v = v.mean,
+                         CPD = CPD.mean))
 }
