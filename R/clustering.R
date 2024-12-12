@@ -192,7 +192,7 @@ find_facets_rough <- function(df,
 #' 
 
 find_facets_fine <- function(df,
-                             cols_to_use,
+                             cols_to_use = 1:3,
                              h_min = NULL,
                              h_max = NULL,
                              h_final = NULL,
@@ -255,7 +255,7 @@ find_facets_fine <- function(df,
   names = c("h", "ommatidia.no")
   
   if(verbose == TRUE){
-    cat("Finding clusters for", n_steps, "points between cut-off values.", "\n")
+    cat("Finding clusters for", n_steps, "points between cut-off values...", "\n")
   }
   ommatidia.no.df = as_tibble(setNames(data.frame(matrix(nrow = 0, 
                                                          ncol = length(names))), 
@@ -284,7 +284,9 @@ find_facets_fine <- function(df,
   if(is.null(h_final)){
     cat("Select cut-off point on x-axis.", "\n")
     h_final <- locator(type = "n", n=1)
-    print(paste0("Final cut-off chosen: ", h_final$x[length(h_final$x)]))
+    if(verbose==TRUE){
+    cat(paste0("Final cut-off chosen: ", round(h_final$x[length(h_final$x)], 2)), "\n")
+    }
   } else if(is.numeric(h_final)){
     h_final <- data.frame(x=h_final)
     cat(paste0("Final cut-off value defined as: ", round(h_final,3),"."), "\n")
@@ -357,16 +359,22 @@ find_facets_fine <- function(df,
     
     
     # curve and differences
-    plot(ommatidia.no.df$h, ommatidia.no.df$ommatidia.no) # , ylim = c(0,max(ommatidia.no.df$ommatidia.no))
+    plot(ommatidia.no.df$h, ommatidia.no.df$ommatidia.no,
+         xlab = "Cutoff value",
+         ylab = "facet number") # , ylim = c(0,max(ommatidia.no.df$ommatidia.no))
     lines(x=rep(h_final$x, 2), y = c(min(ommatidia.no.df$ommatidia.no), max(ommatidia.no.df$ommatidia.no)),
           col = "blue", lty=2)
-    plot(ommatidia.no.df$h, ommatidia.no.df$ommatidia.no.diff, type="l")
+    plot(ommatidia.no.df$h, ommatidia.no.df$ommatidia.no.diff, type="l",
+         xlab = "Cutoff value",
+         ylab = "Delta facet number")
     lines(x=rep(h_final$x, 2), y = c(min(ommatidia.no.df$ommatidia.no.diff), max(ommatidia.no.df$ommatidia.no.diff)),
           col = "blue", lty=2)
     abline(a=0, b=0, col="red", lty=2)
     
     # Histogram
-    hist.plot <- hist(dist.clusters.tbl$value)
+    hist.plot <- hist(dist.clusters.tbl$value,
+                      main = "Histogram of distances",
+                      xlab = paste0("Distance"))
     break_size <- hist.plot$breaks[2]
     hist_x <- hist.plot$breaks[which(hist.plot$counts == max(hist.plot$counts))[1]] + break_size/2
     lines(x = rep(hist_x, 2), y=c(0, (max(hist.plot$counts) + 0.05 * max(hist.plot$counts))),
@@ -378,7 +386,7 @@ find_facets_fine <- function(df,
     cat(paste0("Found ", nrow(df.fin.clean), " facet center candiates. Check 3D plot device."), "\n")
     
     end_time <- Sys.time()
-    cat(end_time - start_time, "\n")
+    cat("Time taken for manual and anutomatic process:", end_time - start_time, "\n")
   }
   
   # plot eye in 3D to get overview

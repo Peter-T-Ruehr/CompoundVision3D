@@ -6,7 +6,7 @@
 \usage{
 find_facets_fine(
   df,
-  cols_to_use,
+  cols_to_use = 1:3,
   h_min = NULL,
   h_max = NULL,
   h_final = NULL,
