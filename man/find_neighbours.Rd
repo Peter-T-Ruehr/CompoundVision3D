@@ -4,7 +4,14 @@
 \alias{find_neighbours}
 \title{Find facet neighbors and Calculate facet sizes}
 \usage{
-find_neighbours(df, facet_size, cores = 1, plot_file = NULL, verbose = FALSE)
+find_neighbours(
+  df,
+  facet_size,
+  neighbour_threshold = 1.5,
+  cores = 1,
+  plot_file = NULL,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{df}{A \code{tibble} containing facet coordinates in columns \verb{x, y, z}.}

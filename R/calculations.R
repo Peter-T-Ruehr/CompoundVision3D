@@ -245,6 +245,7 @@ distance_3D <- function(point1,
 #'
 find_neighbours <- function(df,
                             facet_size,
+                            neighbour_threshold = 1.5,
                             cores = 1,
                             plot_file = NULL,
                             verbose = FALSE){
@@ -253,8 +254,9 @@ find_neighbours <- function(df,
   # # testing
   # df = eye_L
   # facet_size <- curr_facet_estimate
+  # neighbour_threshold = 2 # 1.5
   # cores = 12
-  # plot_file = file.path(neighbors_and_sizes,
+  # plot_file = file.path(facet_infos,
   #                       gsub("_facets_LMs_combined.csv", "_neighbour_and_size_data.pdf", curr_file))
   # verbose = TRUE
   
@@ -267,8 +269,8 @@ find_neighbours <- function(df,
                                 diag = TRUE)
   
   # transform distance matrix into data frame
-  facet_distance_df_all <- melt(as.matrix((facet_distance_matrix), 
-                                          varnames = c("row", "col"))) %>% 
+  facet_distance_df_all <- suppressWarnings(melt(as.matrix((facet_distance_matrix), 
+                                                           varnames = c("row", "col")))) %>% 
     as_tibble() %>% 
     filter(value > 0)
   
@@ -352,33 +354,53 @@ find_neighbours <- function(df,
     cat("Filtering close neighbours (multi-threaded)...\n")
   }
   
-  # xxx: this should be  parameter
-  neighbor_factor <- 1.5
+  # # xxx: this should be  parameter
+  # neighbour_threshold <- 1.5
   
   
   registerDoParallel(cores)
-  l=219
+  l=7
   neighbours_tmp <- foreach(l = 1:nrow(df), # nrow(df)
                             .combine=rbind, .packages=c('dplyr')) %dopar% {
+                              
                               curr_facet <- df$facet[l]
                               
                               neighbours_raw <- facet_distance_df %>%
                                 filter(facet_1 == curr_facet, facet_2 != curr_facet) %>%
                                 arrange(distance) %>%
-                                filter(distance <= neighbor_factor*median.size.tmp) %>%
+                                filter(distance <= neighbour_threshold*median.size.tmp) %>% 
+                                mutate(delta = distance - lag(distance)) 
+                              
+                              # # delta distances between neighbours
+                              # neighbours_delta_threshold = neighbours_raw  %>% 
+                              #   filter(delta != max(delta, na.rm = TRUE)) %>%
+                              #   slice(-nrow(.)) %>% 
+                              #   pull(delta) %>% 
+                              #   median(na.rm=TRUE) * (2*neighbour_threshold)
+                              
+                              # maximum_allowed_row <- which(neighbours_raw$delta == max(neighbours_raw$delta, na.rm = TRUE))
+                              # 
+                              # neighbouring_facets <- neighbours_raw %>% 
+                              #   slice(1:(maximum_allowed_row-1))
+                              
+                              # neighbouring_facets <- neighbours_raw %>%
+                              #   filter(is.na(delta) | delta <= neighbours_delta_threshold) %>%
+                              #   pull(facet_2)
+                              
+                              neighbouring_facets <- neighbours_raw %>%
                                 pull(facet_2)
                               
                               # take a max. of 6 and min of 3 neighbors
-                              if(length(neighbours_raw) > 6){
-                                neighbours_fin <- neighbours_raw[1:6]
-                              } else if(length(neighbours_raw) < 3){
-                                neighbours_fin <- facet_distance_df %>%
-                                  filter(facet_1 == curr_facet, facet_2 != curr_facet) %>%
-                                  arrange(distance) %>%
-                                  slice(1:3) %>%
-                                  pull(facet_2)
+                              if(length(neighbouring_facets) > 6){
+                                neighbours_fin <- neighbouring_facets[1:6]
+                                # } else if(length(neighbouring_facets) < 3){
+                                # neighbours_fin <- facet_distance_df %>%
+                                #   filter(facet_1 == curr_facet, facet_2 != curr_facet) %>%
+                                #   arrange(distance) %>%
+                                #   slice(1:3) %>%
+                                #   pull(facet_2)
                               } else {
-                                neighbours_fin <- neighbours_raw
+                                neighbours_fin <- neighbouring_facets
                               }
                               
                               tmp <- tibble(facet = curr_facet,
@@ -390,9 +412,35 @@ find_neighbours <- function(df,
   stopImplicitCluster()
   
   
+  # add neighbours
   df <- df %>% 
     select(-c(neighbours, number.of.neighbours)) %>% 
     left_join(neighbours_tmp, by="facet")
+  
+  
+  # # test plot
+  # plot3d(df %>%
+  #          select(x,y,z),
+  #        radius = df$size/8,
+  #        # size = mean(df$size)*1.2,
+  #        col = viridis(n=6)[1],
+  #        type="s",
+  #        aspect = "iso")
+  # 
+  # texts3d(df %>%
+  #           select(x,y,z),
+  #         texts = df$facet,
+  #         pos = 1)
+  # tmp=1
+  # for(tmp in 7:nrow(df)){
+  #   plot_facet_and_neighbours(df,
+  #                             facet = tmp,
+  #                             radius = 2,
+  #                             threeD = TRUE)
+  # 
+  #   invisible(readline(prompt="Press [enter] to continue"))
+  # }
+  
   
   # sort(df$number.of.neighbours)
   # hist(df$number.of.neighbours)
@@ -463,23 +511,25 @@ find_neighbours <- function(df,
     
   }
   
+  # remove temporary size column
+  df <- df %>% 
+    select(-size) %>% 
+    dplyr::rename(size = mean_size)
+  
   if(verbose == TRUE){
     cat("Plotting infos to plot device...\n")
+    cat(min(df$size), "\n")
+    cat(max(df$size), "\n")
   }
-  par(mfrow = c(3,1))
+  par(mfrow = c(2,1))
   hist(df$number.of.neighbours, 
        breaks = c(0:7),
        main = "Number of neighbours",
        xlab = "Number of neighbours")
   hist(df$size, 
-       breaks = seq(min(df$size), max(df$size), 
-                    length.out=16),
+       # breaks = seq(min(df$size), max(df$size), 
+       #              length.out=16),
        main = "Raw facet sizes",
-       xlab = "Facet size (um)")
-  hist(df$mean_size, 
-       breaks = seq(min(df$mean_size), max(df$mean_size), 
-                    length.out=16),
-       main = "Mean facet sizes",
        xlab = "Facet size (um)")
   par(mfrow = c(1,1))
   
@@ -493,30 +543,21 @@ find_neighbours <- function(df,
     pdf(plot_file, # , today()
         onefile = TRUE, paper = "a4")
     
-    par(mfrow = c(3,1))
+    par(mfrow = c(2,1))
     hist(df$number.of.neighbours, 
          breaks = c(0:7),
          main = "Number of neighbours",
          xlab = "Number of neighbours")
     hist(df$size, 
-         breaks = seq(min(df$size), max(df$size), 
-                      length.out=16),
+         # breaks = seq(min(df$size), max(df$size), 
+         #              length.out=16),
          main = "Raw facet sizes",
-         xlab = "Facet size (um)")
-    hist(df$mean_size, 
-         breaks = seq(min(df$mean_size), max(df$mean_size), 
-                      length.out=16),
-         main = "Mean facet sizes",
          xlab = "Facet size (um)")
     par(mfrow = c(1,1))
     
     dev.off()
   }
   
-  # remove temporary size column
-  df <- df %>% 
-    select(-size) %>% 
-    dplyr::rename(size = mean_size)
   
   if(verbose == TRUE){
     cat("All done!\n")
@@ -555,7 +596,7 @@ get_facet_normals <- function(df,
   # df = eye_L
   # cores = 12
   # verbose = TRUE
-  # plot_file = file.path(neighbors_and_sizes,
+  # plot_file = file.path(facet_infos,
   #                       gsub("_facets_LMs_combined.csv", "_normal_data.pdf", curr_file))
   
   # get mean coordinate of facets
@@ -614,9 +655,6 @@ get_facet_normals <- function(df,
     cat(paste0("Calculating ", nrow(df), " facet normals according to their neighbors' coordinates (multi-threaded)...\n"))
     cat(paste0("This may take a while, because ", nrow(df), " x ", sum(df$number.of.neighbours), " = ", nrow(df)*sum(df$number.of.neighbours), " calculations will be performed.\n"))
   }
-  
-  
-  
   
   cl <- makeCluster(cores)
   registerDoSNOW(cl)
@@ -714,7 +752,6 @@ get_facet_normals <- function(df,
                           curr_normals_z <- c()
                           curr_normals_angles <- c()
                           
-                          # if(nrow(curr_dists_clean) > 0){
                           n=1
                           for(n in 1:nrow(curr_dists_clean)){
                             # get neighbors for current triangle
@@ -768,6 +805,45 @@ get_facet_normals <- function(df,
                         }
   
   stopCluster(cl) 
+  
+  
+  # average facet angles
+  l=1
+  df_normals_avg <- tibble(facet = numeric(),
+                           norm.x = numeric(),
+                           norm.y = numeric(),
+                           norm.z = numeric())
+  
+  for(l in 1:nrow(df)) {
+    
+    # print(l)
+    curr_facet <- df$facet[l]
+    curr_neighbours <- as.numeric(str_split(df$neighbours[l], pattern = "; ")[[1]])
+    
+    curr_normal <- df_normals %>% 
+      filter(facet == curr_facet) %>% 
+      select(norm.x,norm.y,norm.z)
+    
+    curr_neighbor_normals <- df_normals %>% 
+      filter(facet %in% curr_neighbours) %>% 
+      select(norm.x,norm.y,norm.z)
+    
+    curr_normal_avg_x = mean(c(rep(curr_normal$norm.x, 1),
+                               curr_neighbor_normals$norm.x))
+    curr_normal_avg_y = mean(c(rep(curr_normal$norm.y, 1),
+                               curr_neighbor_normals$norm.y))
+    curr_normal_avg_z = mean(c(rep(curr_normal$norm.z, 1),
+                               curr_neighbor_normals$norm.z))
+    
+    df_normals_avg <- df_normals_avg %>% 
+      add_row(facet = curr_facet,
+              norm.x = curr_normal_avg_x,
+              norm.y = curr_normal_avg_y,
+              norm.z = curr_normal_avg_z)
+  }
+  
+  # replace original values
+  df_normals <- df_normals_avg
   
   if(verbose == TRUE){
     cat("Plotting infos to plot device...\n")
@@ -856,7 +932,7 @@ get_optic_properties <- function(df,
   # # testing
   # df = eye_L
   # cores = 12
-  # plot_file = file.path(neighbors_and_sizes,
+  # plot_file = file.path(facet_infos,
   #                       gsub("_facets_LMs_combined.csv", "_optics_parameters.pdf", curr_file))
   # verbose = TRUE
   
@@ -864,12 +940,24 @@ get_optic_properties <- function(df,
     cat(paste0("Calculating IF angles, P, v, and CPD for ", nrow(df), " facets (multi-threaded)...\n"))
   }
   
+  eye_center = c(df %>% pull(x) %>% mean(),
+                 df %>% pull(y) %>% mean(),
+                 df %>% pull(z) %>% mean())
+  
+  mean_eye_normal = c(df %>% pull(norm.x) %>% mean(),
+                      df %>% pull(norm.y) %>% mean(),
+                      df %>% pull(norm.z) %>% mean())
+  
   registerDoParallel(cores)
-  l=255
-  l=352
+  l=460
   dphi_Ps_CPDs <- foreach(l = 1:nrow(df), # nrow(df)
                           .combine=rbind, .packages=c('dplyr', 'filesstrings', 'CompoundVision3D')) %dopar% {
+                            
                             facet_no <- df$facet[l]
+                            
+                            curr_facet_coords <- df %>%
+                              filter(facet == facet_no) %>%
+                              select(x, y, z)
                             
                             curr_facet_normal <- df %>%
                               filter(facet == facet_no) %>%
@@ -887,17 +975,23 @@ get_optic_properties <- function(df,
                               delta_phis.rad <- c()
                               delta_phis.deg <- c()
                               
-                              neighbour <- curr_facet_neighbours[1]
+                              neighbour <- curr_facet_neighbours[3]
                               for (neighbour in curr_facet_neighbours) {
+                                curr_neighbour_coords <- df %>%
+                                  filter(facet == neighbour) %>%
+                                  select(x, y, z)
+                                
                                 curr_neighbour_normal <- df %>%
                                   filter(facet == neighbour) %>%
                                   select(norm.x, norm.y, norm.z)
+                                
                                 
                                 curr_delta_phi.rad <- calc_delta.phi(curr_facet_normal, curr_neighbour_normal, type = "r")
                                 if(is.na(curr_delta_phi.rad)){
                                   curr_delta_phi.rad = data.frame(0,0)
                                 }
                                 curr_delta_phi.deg <- curr_delta_phi.rad*180/pi
+                                
                                 
                                 delta_phis.rad <- c(delta_phis.rad, curr_delta_phi.rad[1,1])
                                 delta_phis.deg <- c(delta_phis.deg, curr_delta_phi.deg[1,1])
@@ -948,11 +1042,11 @@ get_optic_properties <- function(df,
                   filter(facet==curr_facet) %>% 
                   pull(neighbours), 
                 pattern = "; ")[[1]])
-    dphi_Ps_CPDs$mean.delta_phi.deg[q] <- dphi_Ps_CPDs %>% 
-      filter(facet %in% curr.neighbors) %>% 
-      summarise(mean = mean(delta_phi.deg)) %>% 
-      pull(mean)
-    # mean(dphi_Ps_CPDs$delta_phi.deg[curr.neighbors])
+    
+    # get mean of IF-angles with curr facet angle doubled-weighted
+    dphi_Ps_CPDs$mean.delta_phi.deg[q] <- mean(c(dphi_Ps_CPDs$delta_phi.deg[curr_facet], 
+                                                 dphi_Ps_CPDs$delta_phi.deg[curr_facet],
+                                                 dphi_Ps_CPDs$delta_phi.deg[curr.neighbors]))
   }
   dphi_Ps_CPDs$mean.delta_phi.rad <- dphi_Ps_CPDs$mean.delta_phi.deg*pi/180
   
