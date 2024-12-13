@@ -123,6 +123,7 @@ plot_eye <- function(facets_coords,
 #' xxx: add example and change above parameter description
 #' 
 continuous_color_ramp <- function(values, colors) {
+  values[is.na(values)] <- min(values, na.rm = TRUE)
   v <- (values - min(values))/diff(range(values))
   x <- colorRamp(colors)(v)
   rgb(x[,1], x[,2], x[,3], maxColorValue = 255)
