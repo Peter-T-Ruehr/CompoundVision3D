@@ -9,7 +9,7 @@ import re
 # steps:
 #     1 = import STL file of current eye and modify its to manually extract its surface
 #     2 = add modifiers before manual export of the extracted surface of current eye as ASCII STL
-#     3 = import facet position results of R algorithm
+#     3 = import facet position candidates identified by R algorithm
 #     4 = export facet positions after manual check and corrections; define the path you want to export in next line.
 #     0 (or any other number than 1-4 or any string) = prints error message
 
@@ -119,10 +119,12 @@ elif step == 3:
     ## remove all
     #bpy.ops.object.delete(use_global=False, confirm=False)
     
-    csv_file_path = p.join(csv_file_path = p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/6_fine_clusters', curr_filename + '_fine_clusters.csv'))
+    # print(p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/6_facet_candidates', curr_filename + '_facet_candidates.csv'))
+    # print('*********')
+    csv_file_path = p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/6_facet_candidates', curr_filename + '_facet_candidates.csv')
     
-    file = csv.reader(open(csv_file_path, newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_fine_clusters
-    # file = csv.reader(open(p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/6_fine_clusters/', 'CV0011_Tricholepidion_gertschi_Blanke_4025_eye2_fine_clusters.csv'), newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_fine_clusters
+    file = csv.reader(open(csv_file_path, newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_facet_candidates
+    # file = csv.reader(open(p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/6_facet_candidates/', 'CV0011_Tricholepidion_gertschi_Blanke_4025_eye2_facet_candidates.csv'), newline=''), delimiter=',') # CV0020_Grylloblatta 16 bit_eye2_facet_candidates
 
     print(csv_file_path)
 
@@ -134,9 +136,9 @@ elif step == 3:
     #    print(idx, row)
         if idx > 0:
             
-            x = float(row[0])
-            y = float(row[1])
-            z = float(row[2])
+            x = float(row[1])
+            y = float(row[2])
+            z = float(row[3])
 
 #            bpy.ops.mesh.primitive_uv_sphere_add( location = ( x/1000, y/1000, z/1000 ),
 #                segments=segments, ring_count=ring_count, radius=radius)
@@ -207,7 +209,7 @@ elif step == 4:
         
     selected_objects = bpy.context.selected_objects
     # output_path = p.join('X:/Pub/2023/Krieger_Hartzsch_Krillauge/data/7_corrected_facet_postitions', "KR0001_Krill01fem4x_TIFF_eye1_surface_facet_positions.csv")
-    # output_path = p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/7_fine_clusters_corrected', "CV0003_Zephronia_viridisoma_Micro_CT_8bit_eye2_fine_clusters.csv")
+    # output_path = p.join('X:/Pub/2019/Ruehr_compound_vision/compound_vision_3D_paper/data/7_facet_candidates_corrected', "CV0003_Zephronia_viridisoma_Micro_CT_8bit_eye2_facet_candidates.csv")
     output_path = p.join(output_path, curr_filename + "_facet_positions.csv")
 
     with open(output_path, "w") as output:
