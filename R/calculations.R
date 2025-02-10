@@ -1207,3 +1207,79 @@ get_optic_properties <- function(df,
                          v = v.mean,
                          CPD = CPD.mean))
 }
+
+
+
+
+
+
+#' Average x,y, - and z-coordinates of facets according to their neighbours
+#'
+#' xxx: add description
+#'
+#' @param df A tibble containing facet coordinates in columns `x, y, z` 
+#' as well as neighbours in a column `neighbours`.
+#' @param verbose A `logical` value indicating if message printing is permitted.
+#' Default: `FALSE`.
+#' @return Returns a `tibble` containing the additional columns with info on 
+#' the Eye Parameter (P), the inter-facet angle (delta.phi) and acuity (CPD) for
+#' each facet.
+#'
+#' @export
+#' @examples
+#' xxx: add example
+#'
+average_coordinates <- function(df,
+                                verbose = FALSE){
+  
+  # # testing 
+  # df <- eye_L
+  # verbose = TRUE
+  
+  if(verbose == TRUE){
+    require(forceR)
+    cat("Averaging facet positions according to their neighbors...\n")
+  }
+  
+  # averaged_positions <- 
+  # average facet angles
+  df_positions_avg <- tibble(facet = numeric(),
+                             x_avg = numeric(),
+                             y_avg = numeric(),
+                             z_avg = numeric())
+  
+  l=1
+  for(l in 1:nrow(df)) {
+    
+    # print(l)
+    curr_facet <- df$facet[l]
+    curr_neighbours <- as.numeric(str_split(df$neighbours[l], pattern = "; ")[[1]])
+    
+    curr_position <- df %>% 
+      filter(facet == curr_facet) %>% 
+      select(x,y,z)
+    
+    curr_neighbor_positions <- df %>% 
+      filter(facet %in% curr_neighbours) %>% 
+      select(x,y,z)
+    
+    curr_position_avg_x = mean(c(rep(curr_position$x, 3),
+                                 curr_neighbor_positions$x))
+    curr_position_avg_y = mean(c(rep(curr_position$y, 3),
+                                 curr_neighbor_positions$y))
+    curr_position_avg_z = mean(c(rep(curr_position$z, 3),
+                                 curr_neighbor_positions$z))
+    
+    df_positions_avg <- df_positions_avg %>% 
+      add_row(facet = curr_facet,
+              x_avg = curr_position_avg_x,
+              y_avg = curr_position_avg_y,
+              z_avg = curr_position_avg_z)
+    
+    if(verbose == TRUE){
+      forceR::print_progress(l, nrow(df))
+    }
+  }
+  
+  return(df_positions_avg)
+}
