@@ -6,7 +6,7 @@
  * Peter T. Rühr (October, 2024)
  */
 
-script_version = "0.9.9022";
+script_version = "0.9.9022OIST";
 
 run("Collect Garbage");
 requires("1.39l");
@@ -22,10 +22,10 @@ if (isOpen("3D Viewer")) {
      selectWindow("3D Viewer"); 
      run("Close"); 
 }
-while (nImages>0) { 
-          selectImage(nImages); 
-          close(); 
-}
+//while (nImages>0) { 
+//          selectImage(nImages); 
+//          close(); 
+//}
 
 plugins = getDirectory("plugins");
 unix = '/plugins/';
@@ -53,47 +53,50 @@ while(File.exists(log_dir_path)){
 filelist = getFileList(parent_dir_path);
 // Array.print(filelist);
 
-if(File.exists(parent_dir_path+dir_sep+"DICOMDIR")){
-	print("Trying to open: "+parent_dir_path+"DICOMDIR...");
-	run("Bio-Formats", "open=["+parent_dir_path+"DICOMDIR] color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT"); // display_metadata use_virtual_stack
-} 
-else if (endsWith(filelist[0], "dcm")){
-	print("Trying to open dcm files in "+parent_dir_path+dir_sep+"...");
-	// run("Image Sequence...", "open="+parent_dir_path+dir_sep+"*.dcm file=.dcm sort");
-	File.openSequence(parent_dir_path+dir_sep);
-}
-else if (endsWith(filelist[0], "tif")){
-	if(filelist.length == 1){
-		print("Trying to open single tif file in "+parent_dir_path+dir_sep+"...");
-		open(parent_dir_path+dir_sep+filelist[0]);
-	}
-	else {
-		print("Trying to open multiple tif files in "+parent_dir_path+dir_sep+"...");
-		run("Image Sequence...", "open="+parent_dir_path+dir_sep+"*.tif file=.tif sort");
-	}
-}
-else if (endsWith(filelist[0], "tiff")){
-	print("Trying to open multiple tiff files in "+parent_dir_path+dir_sep+"...");
-	File.openSequence(parent_dir_path);
-}
-else if (endsWith(filelist[0], "jp2")){
-	print("Trying to open jp2 files in "+parent_dir_path+dir_sep+"...");
-	File.openSequence(parent_dir_path);
-}
-else if (endsWith(filelist[0], ".am")){
-	print("Trying to open an Amira(R) file in "+parent_dir_path+dir_sep+"...");
-	open(parent_dir_path+dir_sep+filelist[0]);
-}
-else if (endsWith(filelist[0], ".nrrd")){
-	print("Trying to open nrrd file in "+parent_dir_path+dir_sep+"...");
-	File.openSequence(parent_dir_path);
-	run("Nrrd ...", "load=[+parent_dir_path+dir_sep+filelist[0]]");
-}
+//if(File.exists(parent_dir_path+dir_sep+"DICOMDIR")){
+//	print("Trying to open: "+parent_dir_path+"DICOMDIR...");
+//	run("Bio-Formats", "open=["+parent_dir_path+"DICOMDIR] color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT"); // display_metadata use_virtual_stack
+//} 
+//else if (endsWith(filelist[0], "dcm")){
+//	print("Trying to open dcm files in "+parent_dir_path+dir_sep+"...");
+//	// run("Image Sequence...", "open="+parent_dir_path+dir_sep+"*.dcm file=.dcm sort");
+//	File.openSequence(parent_dir_path+dir_sep);
+//}
+//else if (endsWith(filelist[0], "tif")){
+//	if(filelist.length == 1){
+//		print("Trying to open single tif file in "+parent_dir_path+dir_sep+"...");
+//		open(parent_dir_path+dir_sep+filelist[0]);
+//	}
+//	else {
+//		print("Trying to open multiple tif files in "+parent_dir_path+dir_sep+"...");
+//		run("Image Sequence...", "open="+parent_dir_path+dir_sep+"*.tif file=.tif sort");
+//	}
+//}
+//else if (endsWith(filelist[0], "tiff")){
+//	print("Trying to open multiple tiff files in "+parent_dir_path+dir_sep+"...");
+//	File.openSequence(parent_dir_path);
+//}
+//else if (endsWith(filelist[0], "jp2")){
+//	print("Trying to open jp2 files in "+parent_dir_path+dir_sep+"...");
+//	File.openSequence(parent_dir_path);
+//}
+//else if (endsWith(filelist[0], ".am")){
+//	print("Trying to open an Amira(R) file in "+parent_dir_path+dir_sep+"...");
+//	open(parent_dir_path+dir_sep+filelist[0]);
+//}
+//else if (endsWith(filelist[0], ".nrrd")){
+//	print("Trying to open nrrd file in "+parent_dir_path+dir_sep+"...");
+//	File.openSequence(parent_dir_path);
+//	run("Nrrd ...", "load=[+parent_dir_path+dir_sep+filelist[0]]");
+//}
 //else if (endsWith(filelist[0], ".czi")){
 //	print("Trying to open Carl Zeiss Image file in "+parent_dir_path+dir_sep+"...");
 //	File.openSequence(parent_dir_path);
 //	open(parent_dir_path+dir_sep+filelist[0]);
 //}
+
+//OIST:
+//run("XRM/TXRM/TXM", "load=[Z:/Jocelyn/Lycaenidae //(adults)/CC_ES003_Arh_bir_F2_Head_IOD/CC_ES003_Arh_bir_F2_Head_IOD_2024-11-20_153623/tomo-//A/CC_ES003_Arh_bir_F2_Head_IOD_tomo-A_recon.txm]");
 
 Stack.getDimensions(width,height,channels,slices,frames);
 setSlice(slices/2);
@@ -230,6 +233,7 @@ title_head = getTitle();
 print("Creating target directory...");
 ROI_name = "head";
 ROI_path = parent_dir_path+dir_sep+specimen_name+"_"+ROI_name;
+print(ROI_path);
 File.makeDirectory(ROI_path);
 // sace full-sized head stack
 // saveAs("Tiff", ROI_path+dir_sep+specimen_name+"_"+ROI_name+".tif");

@@ -59,10 +59,13 @@ STL_triangles <- function(file_name,
   }
   
   vertex_coords_triangles <- lines_tbl %>% 
-    filter(grepl("vertex", value)) %>% 
-    separate(value, into = c("value", "x", "y", "z"), sep = " ") %>% 
+    # slice(1:10) %>% 
+    filter(grepl(".*vertex", value)) %>%
+    mutate(value = gsub("^.*vertex", "vertex", value)) %>% 
+    separate(value, into = c("value", "x", "y","z"), 
+             sep = " ") %>% 
     select(-value) %>% 
-    mutate_all(as.numeric) 
+    mutate_all(as.numeric)
   
   # create vector of IDs (3 x same number per vertex coordinate)
   IDs <- c()

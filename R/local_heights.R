@@ -42,6 +42,9 @@ get_local_heights <- function(df,
   x <- y <- z <- value <- value.1 <- value.2 <- row_number <- norm.x <- 
     norm.y <- norm.z <- i <- search_diam_local_height <- local_height <- NULL
   
+  # convert search_diam to numeric if necessary
+  search_diam <- as.numeric(search_diam)
+  
   # define function to normalize vector
   normalize_vector <- function(v){
     v/sqrt(sum(v^2))
@@ -283,7 +286,7 @@ get_height_colors <- function(heights,
 #' @examples
 #' # xxx: add example
 #'
-noramlize_local_heights <- function(df,
+normalize_local_heights <- function(df,
                                     normalize_diam,
                                     column_to_normalize = "local_height",
                                     cores = 12,
@@ -301,6 +304,10 @@ noramlize_local_heights <- function(df,
   # # df %>%
   # #   select(x, one_of(column_to_normalize)) %>%
   # #   rename(local_height = 2)
+  
+  
+  # convert search_diam to numeric if necessary
+  normalize_diam <- as.numeric(normalize_diam)
   
   if(!is.null(plot_file)){
     require(rgl)

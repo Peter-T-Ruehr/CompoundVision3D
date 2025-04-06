@@ -4,7 +4,7 @@
 \alias{align_to_global_axis}
 \title{Align 3D Point Cloud to Global Axis}
 \usage{
-align_to_global_axis(df, line_points_y_ind, line_points_x_inds)
+align_to_global_axis(df, line_points_y_inds, line_points_x_inds)
 }
 \arguments{
 \item{df}{A tibble containing coordinates in columns \verb{x, y, z}.}

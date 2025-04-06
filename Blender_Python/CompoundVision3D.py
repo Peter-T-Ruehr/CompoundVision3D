@@ -18,19 +18,20 @@ class SCRIPT_1_OT_Operator(bpy.types.Operator):
     bl_idname = "script.execute_1"
     bl_label = "Step 1: Rescale mesh"
     
-    def execute(self, context):
-        bpy.ops.transform.resize(value=(0.001, 0.001, 0.001), orient_type='GLOBAL')
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.mesh.normals_make_consistent(inside=False)
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.flip_normals()
-        bpy.ops.mesh.select_all(action='DESELECT')
-        for a in bpy.context.screen.areas:
-            if a.type == 'VIEW_3D':
-                for s in a.spaces:
-                    if s.type == 'VIEW_3D':
-                        s.clip_end = 10000
-                        s.overlay.show_stats = True
+    bpy.ops.transform.resize(value=(0.001, 0.001, 0.001), orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL', mirror=True, use_proportional_edit=False, proportional_edit_falloff='SMOOTH', proportional_size=1, use_proportional_connected=False, use_proportional_projected=False)
+    bpy.ops.object.editmode_toggle()
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.flip_normals()
+    bpy.ops.mesh.select_all(action='DESELECT')
+    # W + W: Lasso selection
+    # bpy.ops.mesh.select_more()
+    for a in bpy.context.screen.areas:
+        if a.type == 'VIEW_3D':
+            for s in a.spaces:
+                if s.type == 'VIEW_3D':
+                    s.clip_end = 10000
+                    s.overlay.show_stats = True
         self.report({'INFO'}, "Script 1 executed!")
         return {'FINISHED'}
 

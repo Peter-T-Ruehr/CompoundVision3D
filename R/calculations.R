@@ -264,6 +264,8 @@ find_neighbours <- function(df,
   # plot_file = file.path(facet_infos,
   #                       gsub("_facets_LMs_combined.csv", "_neighbour_and_size_data.pdf", curr_file))
   # verbose = TRUE
+  facet_size <- as.numeric(facet_size)
+  cores <- as.numeric(cores)
   
   if(verbose == TRUE){
     cat("Creating distance matrix...\n")
@@ -1085,7 +1087,7 @@ get_optic_properties <- function(df,
   
   
   if(verbose == TRUE){
-    cat("Calculating mean IF angles...\n")
+    cat("Calculating weighted mean IF angles...\n")
   }
   
   # find mean IF angle for each facet
@@ -1099,14 +1101,19 @@ get_optic_properties <- function(df,
                   pull(neighbours), 
                 pattern = "; ")[[1]])
     
+    # get number of neghbors for weighted averaging
+    no_of_neihbors <- length(curr.neighbors)
+    
+    weighting_factor <- 6 - no_of_neihbors
+    
     # get mean of IF-angles with curr facet angle doubled-weighted
-    dphi_Ps_CPDs$mean.delta_phi.deg[q] <- mean(c(dphi_Ps_CPDs$delta_phi.deg[curr_facet], 
+    dphi_Ps_CPDs$mean.delta_phi.deg[q] <- mean(c(rep(dphi_Ps_CPDs$delta_phi.deg[curr_facet], (weighting_factor+1)), 
                                                  dphi_Ps_CPDs$delta_phi.deg[curr_facet],
                                                  dphi_Ps_CPDs$delta_phi.deg[curr.neighbors]))
   }
   dphi_Ps_CPDs$mean.delta_phi.rad <- dphi_Ps_CPDs$mean.delta_phi.deg*pi/180
   
-  # calculate P and CPD again with average angles per facet
+  # calculate P and CPD with average angles per facet
   if(verbose == TRUE){
     cat("Calculating mean P and CPD angles...\n")
   }
@@ -1131,13 +1138,20 @@ get_optic_properties <- function(df,
   if(verbose == TRUE){
     cat("Plotting infos to plot device...\n")
   }
-  par(mfrow = c(4,1))
+  par(mfrow = c(5,1))
+  hist(dphi_Ps_CPDs$size, 
+       breaks = seq(min(dphi_Ps_CPDs$size, na.rm = TRUE), 
+                    max(dphi_Ps_CPDs$size, na.rm = TRUE), 
+                    length.out=16),
+       main = "Facet diameter",
+       xlab = "Facet diameter (um)")
   hist(dphi_Ps_CPDs$mean.delta_phi.deg, 
        breaks = seq(min(dphi_Ps_CPDs$mean.delta_phi.deg, na.rm = TRUE), 
                     max(dphi_Ps_CPDs$mean.delta_phi.deg, na.rm = TRUE), 
                     length.out=16),
        main = "Inter-facet angles",
        xlab = "IF-angle (°)")
+  
   hist(dphi_Ps_CPDs$P.mean, 
        breaks = seq(min(dphi_Ps_CPDs$P.mean, na.rm = TRUE), 
                     max(dphi_Ps_CPDs$P.mean, na.rm = TRUE), 
@@ -1167,13 +1181,21 @@ get_optic_properties <- function(df,
     pdf(plot_file, # , today()
         onefile = TRUE, paper = "a4")
     
-    par(mfrow = c(4,1))
+    par(mfrow = c(2,1))
+    hist(dphi_Ps_CPDs$size, 
+         breaks = seq(min(dphi_Ps_CPDs$size, na.rm = TRUE), 
+                      max(dphi_Ps_CPDs$size, na.rm = TRUE), 
+                      length.out=16),
+         main = "Facet size",
+         xlab = "Facet size (um)")
     hist(dphi_Ps_CPDs$mean.delta_phi.deg, 
          breaks = seq(min(dphi_Ps_CPDs$mean.delta_phi.deg, na.rm = TRUE), 
                       max(dphi_Ps_CPDs$mean.delta_phi.deg, na.rm = TRUE), 
                       length.out=16),
          main = "Inter-facet angles",
          xlab = "IF-angle (°)")
+    
+    par(mfrow = c(3,1))
     hist(dphi_Ps_CPDs$P.mean, 
          breaks = seq(min(dphi_Ps_CPDs$P.mean, na.rm = TRUE), 
                       max(dphi_Ps_CPDs$P.mean, na.rm = TRUE), 
@@ -1206,116 +1228,4 @@ get_optic_properties <- function(df,
                          P = P.mean,
                          v = v.mean,
                          CPD = CPD.mean))
-}
-
-
-
-
-
-
-#' Average x, y, and z coordinates of facets according to their neighbours
-#'
-#' xxx: add description
-#'
-#' @param df A tibble containing facet coordinates in columns `x, y, z` 
-#' as well as neighbours in a column `neighbours`.
-#' @param verbose A `logical` value indicating if message printing is permitted.
-#' Default: `FALSE`.
-#' @return Returns a `tibble` containing the additional columns with info on 
-#' the Eye Parameter (P), the inter-facet angle (delta.phi) and acuity (CPD) for
-#' each facet.
-#'
-#' @export
-#' @examples
-#' xxx: add example
-#'
-average_coordinates <- function(df,
-                                verbose = FALSE){
-  
-  # # testing 
-  # df <- eye_L
-  # verbose = TRUE
-  
-  if(verbose == TRUE){
-    require(forceR)
-    cat("Averaging facet positions according to their neighbors...\n")
-  }
-  
-  # averaged_positions <- 
-  # average facet angles
-  df_positions_avg <- tibble(facet = numeric(),
-                             x_avg = numeric(),
-                             y_avg = numeric(),
-                             z_avg = numeric())
-  
-  l=1
-  for(l in 1:nrow(df)) {
-    
-    # print(l)
-    curr_facet <- df$facet[l]
-    curr_neighbours <- as.numeric(str_split(df$neighbours[l], pattern = "; ")[[1]])
-    
-    curr_position <- df %>% 
-      filter(facet == curr_facet) %>% 
-      select(x,y,z)
-    
-    curr_neighbor_positions <- df %>% 
-      filter(facet %in% curr_neighbours) %>% 
-      select(x,y,z)
-    
-    curr_position_avg_x = mean(c(rep(curr_position$x, 3),
-                                 curr_neighbor_positions$x))
-    curr_position_avg_y = mean(c(rep(curr_position$y, 3),
-                                 curr_neighbor_positions$y))
-    curr_position_avg_z = mean(c(rep(curr_position$z, 3),
-                                 curr_neighbor_positions$z))
-    
-    df_positions_avg <- df_positions_avg %>% 
-      add_row(facet = curr_facet,
-              x_avg = curr_position_avg_x,
-              y_avg = curr_position_avg_y,
-              z_avg = curr_position_avg_z)
-    
-    if(verbose == TRUE){
-      forceR::print_progress(l, nrow(df))
-    }
-  }
-  
-  return(df_positions_avg)
-}
-
-
-
-
-
-
-
-
-#' Move a 3D point along a vector
-#'
-#' xxx: add description
-#'
-#' @param point A `tibble` or `vector` containing the `x, y, z` coordinates of the point to move.
-#' @param vector A `tibble` or `vector` containing the `x, y, z` values of the vector.
-#' @param distance A `numeric` value by which the point shall be moved.
-#' @return Returns a `vector` containing the `x, y, z` coordinates of the moved point.
-#'
-#' @export
-#' @examples
-#' xxx: add example
-move_point_along_vector <- function(point, 
-                                    vector, 
-                                    distance) {
-  # # testing
-  # point = curr_facet_coods
-  # vector = curr_facet_normal
-  # distance = curr_median_facet_surface_height
-  
-  # Normalize the vector
-  norm_vector <- -1 * (vector / sqrt(sum(vector^2)))
-  
-  # Compute new coordinates
-  new_point <- point + norm_vector * distance
-  
-  return(new_point)
 }

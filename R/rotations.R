@@ -15,13 +15,14 @@
 #' xxx: add example and change above descsriptionand parameters
 #'
 align_to_global_axis = function(df,
-                                line_points_y_ind,
+                                line_points_y_inds,
                                 line_points_x_inds){
   
   # # testing
   # df = all_coords_combined
-  # line_points_x_ind = line_points_x
-  # line_points_y_ind = line_points_y
+  # line_points_y_inds = line_points_y
+  # line_points_x_inds = line_points_x
+  ## has_normals = TRUE
   
   # rotate_points_tibble <- function(points) {
   require(tibble)
@@ -31,6 +32,11 @@ align_to_global_axis = function(df,
   if (!all(c("x", "y", "z") %in% colnames(df))) {
     stop("Input tibble must have columns: x, y, z")
   }
+  # if(has_normals == TRUE){
+  #   if (!all(c("norm.x", "norm.y", "norm.z") %in% colnames(df))) {
+  #     stop("Input tibble must have columns: x, y, z")
+  #   }
+  # }
   
   # Helper functions
   normalize <- function(v) {
@@ -58,32 +64,43 @@ align_to_global_axis = function(df,
   
   # Extract df
   A <- df %>%
-    slice(line_points_y_ind[1]) %>%
+    slice(line_points_y_inds[1]) %>%
     select(x,y,z) %>%
     as.numeric() # as.numeric(df[1, c("x", "y", "z")])
   B <- df %>%
-    slice(line_points_y_ind[2]) %>%
+    slice(line_points_y_inds[2]) %>%
     select(x,y,z) %>%
     as.numeric() # as.numeric(df[2, c("x", "y", "z")])
   C <- df %>%
-    slice(line_points_x_ind[1]) %>%
+    slice(line_points_x_inds[1]) %>%
     select(x,y,z) %>%
     as.numeric() # as.numeric(df[3, c("x", "y", "z")])
   D <-  df %>%
-    slice(line_points_x_ind[2]) %>%
+    slice(line_points_x_inds[2]) %>%
     select(x,y,z) %>%
     as.numeric() # as.numeric(df[4, c("x", "y", "z")])
   
   # Step 1: Translate all df so A is at the origin
   translate <- function(point, origin) point - origin
+  
   translated_df <- as.matrix(df[, c("x", "y", "z")]) %>%
     apply(1, translate, origin = A) %>%
     t()
+  # if(has_normals == TRUE) {
+  #   translated_normals_df <- as.matrix(df[, c("norm.x", "norm.y", "norm.z")]) %>%
+  #     apply(1, translate, origin = A) %>%
+  #     t()
+  # }
   
-  # points3d(translated_df)
+  # plot3d(translated_df)
+  # plot3d(translated_normals_df)
   
   # Step 2: Rotate so AB aligns with the Y-axis
-  AB <- normalize(translated_df[line_points_y_ind[2],])  # Vector AB
+  AB <- normalize(translated_df[line_points_y_inds[2],])  # Vector AB
+  # if(has_normals == TRUE) {
+  #   AB.norm <- normalize(translated_normals_df[line_points_y_inds[2],])  # Vector AB
+  # }
+  
   y_axis <- c(0, 1, 0)
   
   if (!all(abs(AB - y_axis) < 1e-8)) {
@@ -96,8 +113,8 @@ align_to_global_axis = function(df,
   }
   
   # Step 3: Rotate around the Y-axis so C and D have the same z-coordinate
-  C <- translated_df[line_points_x_ind[1],]
-  D <- translated_df[line_points_x_ind[2],]
+  C <- translated_df[line_points_x_inds[1],]
+  D <- translated_df[line_points_x_inds[2],]
   delta_z <- C[3] - D[3]  # Difference in z-coordinates
   delta_x <- D[1] - C[1]  # Difference in x-coordinates
   
