@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculations.R
 \name{average_coordinates}
 \alias{average_coordinates}
-\title{Average x,y, - and z-coordinates of facets according to their neighbours}
+\title{Average x, y, and z coordinates of facets according to their neighbours}
 \usage{
 average_coordinates(df, verbose = FALSE)
 }
