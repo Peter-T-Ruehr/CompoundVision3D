@@ -1213,7 +1213,7 @@ get_optic_properties <- function(df,
 
 
 
-#' Average x,y, - and z-coordinates of facets according to their neighbours
+#' Average x, y, and z coordinates of facets according to their neighbours
 #'
 #' xxx: add description
 #'
@@ -1282,4 +1282,40 @@ average_coordinates <- function(df,
   }
   
   return(df_positions_avg)
+}
+
+
+
+
+
+
+
+
+#' Move a 3D point along a vector
+#'
+#' xxx: add description
+#'
+#' @param point A `tibble` or `vector` containing the `x, y, z` coordinates of the point to move.
+#' @param vector A `tibble` or `vector` containing the `x, y, z` values of the vector.
+#' @param distance A `numeric` value by which the point shall be moved.
+#' @return Returns a `vector` containing the `x, y, z` coordinates of the moved point.
+#'
+#' @export
+#' @examples
+#' xxx: add example
+move_point_along_vector <- function(point, 
+                                    vector, 
+                                    distance) {
+  # # testing
+  # point = curr_facet_coods
+  # vector = curr_facet_normal
+  # distance = curr_median_facet_surface_height
+  
+  # Normalize the vector
+  norm_vector <- -1 * (vector / sqrt(sum(vector^2)))
+  
+  # Compute new coordinates
+  new_point <- point + norm_vector * distance
+  
+  return(new_point)
 }
