@@ -6,7 +6,7 @@
  * Peter T. Rühr (October, 2024)
  */
 
-script_version = "0.9.9022OIST";
+script_version = "0.9.9023";
 
 run("Collect Garbage");
 requires("1.39l");
@@ -50,50 +50,67 @@ while(File.exists(log_dir_path)){
 	waitForUser("Please delete or rename the ROI folder ("+log_dir_path+")!");
 }
 
-filelist = getFileList(parent_dir_path);
+//filelist = getFileList(parent_dir_path);
 // Array.print(filelist);
 
-//if(File.exists(parent_dir_path+dir_sep+"DICOMDIR")){
-//	print("Trying to open: "+parent_dir_path+"DICOMDIR...");
-//	run("Bio-Formats", "open=["+parent_dir_path+"DICOMDIR] color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT"); // display_metadata use_virtual_stack
-//} 
-//else if (endsWith(filelist[0], "dcm")){
-//	print("Trying to open dcm files in "+parent_dir_path+dir_sep+"...");
-//	// run("Image Sequence...", "open="+parent_dir_path+dir_sep+"*.dcm file=.dcm sort");
-//	File.openSequence(parent_dir_path+dir_sep);
-//}
-//else if (endsWith(filelist[0], "tif")){
-//	if(filelist.length == 1){
-//		print("Trying to open single tif file in "+parent_dir_path+dir_sep+"...");
-//		open(parent_dir_path+dir_sep+filelist[0]);
-//	}
-//	else {
-//		print("Trying to open multiple tif files in "+parent_dir_path+dir_sep+"...");
-//		run("Image Sequence...", "open="+parent_dir_path+dir_sep+"*.tif file=.tif sort");
-//	}
-//}
-//else if (endsWith(filelist[0], "tiff")){
-//	print("Trying to open multiple tiff files in "+parent_dir_path+dir_sep+"...");
-//	File.openSequence(parent_dir_path);
-//}
-//else if (endsWith(filelist[0], "jp2")){
-//	print("Trying to open jp2 files in "+parent_dir_path+dir_sep+"...");
-//	File.openSequence(parent_dir_path);
-//}
-//else if (endsWith(filelist[0], ".am")){
-//	print("Trying to open an Amira(R) file in "+parent_dir_path+dir_sep+"...");
-//	open(parent_dir_path+dir_sep+filelist[0]);
-//}
-//else if (endsWith(filelist[0], ".nrrd")){
-//	print("Trying to open nrrd file in "+parent_dir_path+dir_sep+"...");
-//	File.openSequence(parent_dir_path);
-//	run("Nrrd ...", "load=[+parent_dir_path+dir_sep+filelist[0]]");
-//}
-//else if (endsWith(filelist[0], ".czi")){
-//	print("Trying to open Carl Zeiss Image file in "+parent_dir_path+dir_sep+"...");
-//	File.openSequence(parent_dir_path);
-//	open(parent_dir_path+dir_sep+filelist[0]);
-//}
+function listFilesNonRecurse(dir) {
+    list = getFileList(dir);
+    filelist = newArray();
+    for (i = 0; i < list.length; i++) {
+        if (!endsWith(list[i], "/")) {
+            filelist = Array.concat(filelist, newArray(list[i]));
+        }
+    }
+    return filelist;
+}
+
+filelist = listFilesNonRecurse(parent_dir_path);
+Array.print(filelist);
+
+
+if(File.exists(parent_dir_path+dir_sep+"DICOMDIR")){
+	print("Trying to open: "+parent_dir_path+"DICOMDIR...");
+	run("Bio-Formats", "open=["+parent_dir_path+"DICOMDIR] color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT"); // display_metadata use_virtual_stack
+} 
+else if (endsWith(filelist[0], "dcm")){
+	print("Trying to open dcm files in "+parent_dir_path+dir_sep+"...");
+	 run("Image Sequence...", "open="+parent_dir_path+dir_sep+"*.dcm file=.dcm sort");
+	File.openSequence(parent_dir_path+dir_sep);
+}
+else if (endsWith(filelist[0], "tif")){
+	if(filelist.length == 1){
+		print("Trying to open single tif file in "+parent_dir_path+dir_sep+"...");
+		open(parent_dir_path+dir_sep+filelist[0]);
+	}
+	else {
+		print("Trying to open multiple tif files in "+parent_dir_path+dir_sep+"...");
+		run("Image Sequence...", "open="+parent_dir_path+dir_sep+"*.tif file=.tif sort");
+	}
+}
+else if (endsWith(filelist[0], "tiff")){
+	print("Trying to open multiple tiff files in "+parent_dir_path+dir_sep+"...");
+	File.openSequence(parent_dir_path);
+}
+else if (endsWith(filelist[0], "jp2")){
+	print("Trying to open jp2 files in "+parent_dir_path+dir_sep+"...");
+	File.openSequence(parent_dir_path);
+}
+else if (endsWith(filelist[0], ".am")){
+	print("Trying to open an Amira(R) file in "+parent_dir_path+dir_sep+"...");
+	open(parent_dir_path+dir_sep+filelist[0]);
+}
+else if (endsWith(filelist[0], ".nrrd")){
+	print("Trying to open nrrd file in "+parent_dir_path+dir_sep+"...");
+	File.openSequence(parent_dir_path);
+	run("Nrrd ...", "load=[+parent_dir_path+dir_sep+filelist[0]]");
+}
+else if (endsWith(filelist[0], ".czi")){
+	print("Trying to open Carl Zeiss Image file in "+parent_dir_path+dir_sep+"...");
+	File.openSequence(parent_dir_path);
+	open(parent_dir_path+dir_sep+filelist[0]);
+} else {
+	print("Nothing found in "+parent_dir_path+dir_sep+"...");
+}
 
 //OIST:
 //run("XRM/TXRM/TXM", "load=[Z:/Jocelyn/Lycaenidae //(adults)/CC_ES003_Arh_bir_F2_Head_IOD/CC_ES003_Arh_bir_F2_Head_IOD_2024-11-20_153623/tomo-//A/CC_ES003_Arh_bir_F2_Head_IOD_tomo-A_recon.txm]");
