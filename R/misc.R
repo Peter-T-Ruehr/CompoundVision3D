@@ -21,9 +21,9 @@
 #' `./data/9_facets_landmarks_rotated/`\cr
 #' `./data/10_facet_infos/`\cr
 #' `./data/11_analyses/`
-#' @import xlsx
-#' @import tibble
-#' @import dplyr
+#' @importFrom openxlsx write.xlsx
+#' @importFrom tibble tibble
+#' @importFrom dplyr add_row
 #'
 #' @export
 #' @examples
@@ -31,6 +31,8 @@
 #'
 set_up_folder_structure <- function(parent_folder = NULL,
                                     verbose = TRUE){
+  # # testing
+  # parent_folder <- "X:/Pub/2025/Ruehr_Mayfly_eyes/analysis"
   
   if(is.null(parent_folder)){
     parent_folder = getwd()
@@ -138,33 +140,43 @@ set_up_folder_structure <- function(parent_folder = NULL,
   }
   
   # excel sheets
-  
   excel_file_path <- file.path(data_folder, "CompoundVision3D_EyeNotes.xlsx")
-  if(verbose == TRUE) cat("Creating", excel_file_path, "...\n")
-  
-  # CompoundVision3D_EyeNotes
-  library(xlsx)
-  library(tibble)
-  library(dplyr)
-  CompoundVision3D_EyeNotes <- tibble(CV = character(),
-                                      class = character(),
-                                      order = character(),
-                                      family = character(),
-                                      genus = character(),
-                                      species = character(),
-                                      eye = character(),
-                                      side = character(),
-                                      facet_size_estimate = character(),)
-  if(length(CV_numbers > 0)){
-    for(curr_CV in CV_numbers){
-      CompoundVision3D_EyeNotes <- CompoundVision3D_EyeNotes %>% 
-        add_row(CV = curr_CV)
+  if(file.exists(excel_file_path)){
+    if(verbose == TRUE) cat(excel_file_path, "already exists.\n")
+  } else {
+    if(verbose == TRUE) cat("Creating", excel_file_path, "...\n")
+    
+    # CompoundVision3D_EyeNotes
+    # library(openxlsx)
+    # library(tibble)
+    # library(dplyr)
+    CompoundVision3D_EyeNotes <- tibble(CV = character(),
+                                        class = character(),
+                                        order = character(),
+                                        family = character(),
+                                        genus = character(),
+                                        species = character(),
+                                        eye = character(),
+                                        side = character(),
+                                        facet_size_estimate = character())
+    print(CompoundVision3D_EyeNotes)
+    print(CV_numbers)
+    print(length(CV_numbers))
+    if(length(CV_numbers > 0)){
+      for(curr_CV in CV_numbers){
+        CompoundVision3D_EyeNotes <- CompoundVision3D_EyeNotes %>% 
+          add_row(CV = curr_CV,
+                  eye = "1") %>% 
+          add_row(CV = curr_CV,
+                  eye = "2")
+      }
     }
+    print(CompoundVision3D_EyeNotes)
+    
+    write.xlsx(CompoundVision3D_EyeNotes,
+               rowNames = FALSE,
+               showNA = FALSE,
+               sheetName = "EyeNotes",
+               file =  excel_file_path)
   }
-  
-  write.xlsx(CompoundVision3D_EyeNotes,
-             row.names = FALSE,
-             showNA = FALSE,
-             sheetName = "EyeNotes",
-             file =  excel_file_path)
 }
