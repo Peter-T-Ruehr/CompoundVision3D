@@ -22,7 +22,8 @@ Imports:
 	rgl,
 	stats,
 	tidyr,
-	forceR
+	forceR,
+	xlsx
 Depends: 
     R (>= 4.0)
 VignetteBuilder: knitr
